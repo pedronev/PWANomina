@@ -53,7 +53,7 @@ export default function RecordsPage() {
     const today = new Date();
     const currentDay = today.getDay();
 
-    let friday = new Date(today);
+    const friday = new Date(today);
     if (currentDay >= 5) {
       friday.setDate(
         today.getDate() - (currentDay - 5) + currentWeekOffset * 7
