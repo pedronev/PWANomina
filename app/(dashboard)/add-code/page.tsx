@@ -32,8 +32,7 @@ export default function AddCodePage() {
       }}
     >
       <div className="h-full flex flex-col">
-        {/* Header compacto */}
-        <div className="flex items-center gap-2 p-4 bg-white border-b border-gray-100">
+        {/* <div className="flex items-center gap-2 p-4 bg-white border-b border-gray-100">
           <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
             <Clock className="w-4 h-4 text-blue-600" />
           </div>
@@ -45,7 +44,7 @@ export default function AddCodePage() {
               {daysOfWeek.find((d) => d.id === selectedDay)?.full}
             </p>
           </div>
-        </div>
+        </div> */}
 
         {/* Selector de proceso */}
         <div className="p-4 bg-white border-b border-gray-100">
