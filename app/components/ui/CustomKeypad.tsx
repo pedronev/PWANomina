@@ -39,7 +39,7 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
             key={num}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleNumberPress(num.toString())}
-            className="bg-white border-l border-t border-gray-300 text-2xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
+            className="bg-white border-l border-t border-gray-300 text-4xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
           >
             {num}
           </motion.button>
@@ -58,7 +58,7 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => handleNumberPress("0")}
-          className="bg-white border-l border-t border-gray-300 text-2xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
+          className="bg-white border-l border-t border-gray-300 text-4xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
         >
           0
         </motion.button>

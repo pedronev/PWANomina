@@ -5,20 +5,13 @@ import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import ProcessSelector from "@/app/components/ui/ProcessSelector";
 import CustomKeypad from "@/app/components/ui/CustomKeypad";
 import { useWeek } from "@/app/hooks/useWeek";
-import { Clock } from "lucide-react";
 
 export default function AddCodePage() {
   const [selectedProcess, setSelectedProcess] = useState<number | null>(null);
   const [code, setCode] = useState("");
   const { selectedDay, setSelectedDay, getWeekRange, daysOfWeek } = useWeek();
 
-  const processes = [
-    "Proceso A",
-    "Proceso B",
-    "Proceso C",
-    "Proceso D",
-    "Proceso E",
-  ];
+  const processes = ["Proceso A", "Proceso B"];
 
   return (
     <DashboardLayout
@@ -32,20 +25,6 @@ export default function AddCodePage() {
       }}
     >
       <div className="h-full flex flex-col">
-        {/* <div className="flex items-center gap-2 p-4 bg-white border-b border-gray-100">
-          <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-            <Clock className="w-4 h-4 text-blue-600" />
-          </div>
-          <div>
-            <h2 className="text-base font-semibold text-gray-900">
-              Registro de Trabajo
-            </h2>
-            <p className="text-xs text-gray-500">
-              {daysOfWeek.find((d) => d.id === selectedDay)?.full}
-            </p>
-          </div>
-        </div> */}
-
         {/* Selector de proceso */}
         <div className="p-4 bg-white border-b border-gray-100">
           <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -75,7 +54,7 @@ export default function AddCodePage() {
           <div className="p-2 border-t border-gray-100">
             <button
               disabled={selectedProcess === null || !code}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors duration-200 shadow-sm ${
+              className={`w-full py-3 px-4 rounded-lg font-bold transition-colors text-2xl duration-200 shadow-sm ${
                 selectedProcess !== null && code
                   ? "bg-blue-600 hover:bg-blue-700 text-white"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"

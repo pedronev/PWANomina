@@ -59,7 +59,6 @@ export default function ProcessSelector({
                 <div className="font-semibold text-gray-700 text-sm">
                   {proceso}
                 </div>
-                <div className="text-xs text-gray-500">Línea de trabajo</div>
               </div>
             </div>
           </button>
