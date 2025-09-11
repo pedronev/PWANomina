@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { motion, Reorder } from "framer-motion";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import { useWeek } from "@/app/hooks/useWeek";
 import { ChevronLeft, ChevronRight, Trash2, Calendar } from "lucide-react";
@@ -18,7 +19,7 @@ export default function RecordsPage() {
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
 
   // Datos mock - en producción vendrían de Supabase
-  const mockRecords: WorkRecord[] = [
+  const [mockRecords, setMockRecords] = useState<WorkRecord[]>([
     {
       id: "1",
       day: 1,
@@ -47,7 +48,7 @@ export default function RecordsPage() {
       code: "22222",
       date: "2024-09-05",
     },
-  ];
+  ]);
 
   const getCurrentWeekRange = () => {
     const today = new Date();
@@ -82,8 +83,7 @@ export default function RecordsPage() {
   };
 
   const handleDeleteRecord = (recordId: string) => {
-    // Aquí iría la lógica para eliminar de Supabase
-    console.log("Eliminar registro:", recordId);
+    setMockRecords((prev) => prev.filter((record) => record.id !== recordId));
   };
 
   const navigateWeek = (direction: "prev" | "next") => {
@@ -92,9 +92,63 @@ export default function RecordsPage() {
     );
   };
 
-  const getDayName = (dayId: number) => {
-    return daysOfWeek.find((d) => d.id === dayId)?.name || "";
+  // Crear un array plano con separadores para cada día
+  const createFlattenedRecords = () => {
+    const flattened: (
+      | WorkRecord
+      | { type: "separator"; dayId: number; dayName: string }
+    )[] = [];
+
+    daysOfWeek.forEach((day) => {
+      // Agregar separador del día
+      flattened.push({
+        type: "separator",
+        dayId: day.id,
+        dayName: day.full,
+      });
+
+      // Agregar registros del día
+      const dayRecords = getRecordsForDay(day.id);
+      flattened.push(...dayRecords);
+    });
+
+    return flattened;
   };
+
+  const handleReorder = (
+    newOrder: (
+      | WorkRecord
+      | { type: "separator"; dayId: number; dayName: string }
+    )[]
+  ) => {
+    const updatedRecords: WorkRecord[] = [];
+    let currentDay = daysOfWeek[0].id;
+
+    newOrder.forEach((item) => {
+      if ("type" in item && item.type === "separator") {
+        currentDay = item.dayId;
+      } else if ("id" in item) {
+        // Actualizar el día del registro basado en su posición
+        updatedRecords.push({
+          ...item,
+          day: currentDay,
+        });
+      }
+    });
+
+    setMockRecords(updatedRecords);
+  };
+
+  // Componente para las 3 líneas estilo iOS
+  const DragHandle = () => (
+    <div className="flex flex-col items-center justify-center w-6 h-6 px-1">
+      <div className="w-4 h-0.5 bg-gray-400 rounded-full mb-0.5"></div>
+      <div className="w-4 h-0.5 bg-gray-400 rounded-full mb-0.5"></div>
+      <div className="w-4 h-0.5 bg-gray-400 rounded-full"></div>
+    </div>
+  );
+
+  const flattenedItems = createFlattenedRecords();
 
   return (
     <DashboardLayout title="Registros">
@@ -131,67 +185,98 @@ export default function RecordsPage() {
           </div>
         </div>
 
-        {/* Tabla de registros */}
+        {/* Lista unificada de registros */}
         <div className="flex-1 overflow-auto">
-          {daysOfWeek.map((day) => {
-            const dayRecords = getRecordsForDay(day.id);
+          <Reorder.Group
+            axis="y"
+            values={flattenedItems}
+            onReorder={handleReorder}
+            className="divide-y divide-gray-100"
+          >
+            {flattenedItems.map((item) => {
+              if ("type" in item && item.type === "separator") {
+                const dayRecords = getRecordsForDay(item.dayId);
+                return (
+                  <Reorder.Item
+                    key={`separator-${item.dayId}`}
+                    value={item}
+                    dragListener={false}
+                    className="bg-gray-50 px-4 py-3 flex items-center gap-3 border-b border-gray-100"
+                  >
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <span className="font-medium text-gray-700">
+                      {item.dayName}
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      ({dayRecords.length} registro
+                      {dayRecords.length !== 1 ? "s" : ""})
+                    </span>
+                  </Reorder.Item>
+                );
+              }
 
-            return (
-              <div key={day.id} className="border-b border-gray-100">
-                {/* Header del día */}
-                <div className="bg-gray-50 px-4 py-3 flex items-center gap-3">
-                  <Calendar className="w-4 h-4 text-gray-500" />
-                  <span className="font-medium text-gray-700">{day.full}</span>
-                  <span className="text-sm text-gray-500">
-                    ({dayRecords.length} registro
-                    {dayRecords.length !== 1 ? "s" : ""})
-                  </span>
-                </div>
+              const record = item as WorkRecord;
+              return (
+                <Reorder.Item
+                  key={record.id}
+                  value={record}
+                  className="px-4 py-3 flex items-center justify-between hover:bg-gray-50 transition-all duration-200 bg-white"
+                  whileDrag={{
+                    scale: 1.02,
+                    boxShadow: "0 8px 16px rgba(0,0,0,0.1)",
+                    backgroundColor: "#f8fafc",
+                    zIndex: 1000,
+                  }}
+                  animate={{
+                    scale: 1,
+                    boxShadow: "0 0px 0px rgba(0,0,0,0)",
+                    backgroundColor: "#ffffff",
+                    zIndex: 1,
+                  }}
+                  transition={{
+                    duration: 0.2,
+                    ease: "easeOut",
+                  }}
+                >
+                  <div className="flex items-center gap-3 flex-1">
+                    <motion.div
+                      className="cursor-grab active:cursor-grabbing p-1 rounded hover:bg-gray-200 transition-colors"
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <DragHandle />
+                    </motion.div>
 
-                {/* Registros del día */}
-                {dayRecords.length > 0 ? (
-                  <div className="divide-y divide-gray-100">
-                    {dayRecords.map((record) => (
-                      <div
-                        key={record.id}
-                        className="px-4 py-3 flex items-center justify-between hover:bg-gray-50"
-                      >
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3">
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                            <div>
-                              <p className="font-medium text-gray-900">
-                                {record.process}
-                              </p>
-                              <p className="text-sm text-gray-500">
-                                Código: {record.code}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-
-                        <button
-                          onClick={() => handleDeleteRecord(record.id)}
-                          className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    ))}
+                    <div className="flex-1">
+                      <p className="font-bold text-gray-900 text-lg">
+                        {record.code}
+                      </p>
+                      <p className="text-sm text-gray-500">{record.process}</p>
+                    </div>
                   </div>
-                ) : (
-                  <div className="px-4 py-6 text-center text-gray-500">
-                    <p className="text-sm">Sin registros</p>
-                  </div>
-                )}
-              </div>
-            );
-          })}
+
+                  <button
+                    onClick={() => handleDeleteRecord(record.id)}
+                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </Reorder.Item>
+              );
+            })}
+          </Reorder.Group>
+
+          {/* Mensaje cuando no hay registros */}
+          {mockRecords.length === 0 && (
+            <div className="px-4 py-12 text-center text-gray-500">
+              <p className="text-sm">No hay registros esta semana</p>
+            </div>
+          )}
         </div>
 
         {/* Resumen de la semana */}
         <div className="bg-white border-t border-gray-100 p-4">
-          <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="grid grid-cols-2 gap-4 text-center">
             <div>
               <p className="text-2xl font-bold text-blue-600">
                 {mockRecords.length}
@@ -208,12 +293,6 @@ export default function RecordsPage() {
               </p>
               <p className="text-xs text-gray-500">Días trabajados</p>
             </div>
-            {/* <div>
-              <p className="text-2xl font-bold text-purple-600">
-                {new Set(mockRecords.map((r) => r.process)).size}
-              </p>
-              <p className="text-xs text-gray-500">Procesos únicos</p>
-            </div> */}
           </div>
         </div>
       </div>

@@ -19,8 +19,9 @@ export const useWeek = () => {
       friday.setDate(today.getDate() - (currentDay + 2));
     }
 
-    const thursday = new Date(friday);
-    thursday.setDate(friday.getDate() + 6);
+    // Viernes de la siguiente semana
+    const nextFriday = new Date(friday);
+    nextFriday.setDate(friday.getDate() + 7);
 
     const formatDate = (date: Date) => {
       return date.toLocaleDateString("es-ES", {
@@ -29,17 +30,18 @@ export const useWeek = () => {
       });
     };
 
-    return `${formatDate(friday)} - ${formatDate(thursday)}`;
+    return `${formatDate(friday)} - ${formatDate(nextFriday)}`;
   };
 
   const daysOfWeek = [
-    { id: 5, name: "Vie", full: "Viernes" },
-    { id: 6, name: "Sáb", full: "Sábado" },
-    { id: 0, name: "Dom", full: "Domingo" },
-    { id: 1, name: "Lun", full: "Lunes" },
-    { id: 2, name: "Mar", full: "Martes" },
-    { id: 3, name: "Mié", full: "Miércoles" },
-    { id: 4, name: "Jue", full: "Jueves" },
+    { id: 5, name: "Vie", full: "Viernes", isNextWeek: false },
+    { id: 6, name: "Sáb", full: "Sábado", isNextWeek: false },
+    { id: 0, name: "Dom", full: "Domingo", isNextWeek: false },
+    { id: 1, name: "Lun", full: "Lunes", isNextWeek: false },
+    { id: 2, name: "Mar", full: "Martes", isNextWeek: false },
+    { id: 3, name: "Mié", full: "Miércoles", isNextWeek: false },
+    { id: 4, name: "Jue", full: "Jueves", isNextWeek: false },
+    { id: 15, name: "Vie", full: "Viernes", isNextWeek: true }, // 15 = viernes siguiente
   ];
 
   return {
