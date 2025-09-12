@@ -1,8 +1,8 @@
 import { memo } from "react";
 import { Reorder } from "framer-motion";
 import { Calendar } from "lucide-react";
+import type { WorkRecord } from "@/app/types/records";
 import RecordItem from "./RecordItem";
-import type { WorkRecord } from "@/app/hooks/useRecords";
 
 interface DaySectionProps {
   dayId: number;

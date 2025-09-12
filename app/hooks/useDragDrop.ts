@@ -1,6 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { DAYS_OF_WEEK } from "@/app/utils/daysUtils";
-import type { WorkRecord } from "./useRecords";
+import type { WorkRecord } from "@/app/types/records";
 
 export const useDragDrop = (
   records: WorkRecord[],
