@@ -1,3 +1,5 @@
+import { Fragment } from "react";
+
 interface WeekSelectorProps {
   selectedDay: number;
   onDaySelect: (day: number) => void;
@@ -49,71 +51,69 @@ export default function WeekSelector({
   return (
     <div style={{ display: "flex", width: "100%", gap: "1px" }}>
       {daysOfWeek.map((day) => (
-        <button
-          key={day.id}
-          onClick={() => onDaySelect(day.id)}
-          style={{
-            flex: "1 1 0",
-            minWidth: "0",
-            padding: "8px 1px",
-            borderRadius: "6px",
-            fontSize: "14px",
-            fontWeight: "500",
-            textAlign: "center",
-            cursor: "pointer",
-            transition: "all 0.2s",
-            backgroundColor:
-              selectedDay === day.id
-                ? "white"
-                : day.isNextWeek
-                ? "rgba(251, 146, 60, 0.15)" // Orange background for next week
-                : "rgba(255, 255, 255, 0.1)",
-            color:
-              selectedDay === day.id
-                ? "#2563eb"
-                : day.isNextWeek
-                ? "#ea580c" // Orange text for next week
-                : "#6b7280",
-            boxShadow:
-              selectedDay === day.id
-                ? "0 1px 3px rgba(0, 0, 0, 0.1)"
-                : day.isNextWeek
-                ? "0 1px 2px rgba(251, 146, 60, 0.2)"
-                : "none",
-            transform: selectedDay === day.id ? "scale(1.05)" : "scale(1)",
-            border: day.isNextWeek
-              ? "1px solid rgba(251, 146, 60, 0.3)"
-              : "none",
-          }}
-          onMouseEnter={(e) => {
-            if (selectedDay !== day.id) {
-              e.currentTarget.style.backgroundColor = day.isNextWeek
-                ? "rgba(251, 146, 60, 0.25)"
-                : "rgba(255, 255, 255, 0.2)";
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (selectedDay !== day.id) {
-              e.currentTarget.style.backgroundColor = day.isNextWeek
-                ? "rgba(251, 146, 60, 0.15)"
-                : "rgba(255, 255, 255, 0.1)";
-            }
-          }}
-        >
-          <div style={{ lineHeight: "1" }}>
-            <div style={{ opacity: "0.75", marginBottom: "1px" }}>
-              {getDateForDay(day.id === 15 ? 5 : day.id, day.isNextWeek)}
-            </div>
-            <div>{day.name}</div>
-            {day.isNextWeek && (
-              <div
-                style={{ fontSize: "8px", opacity: "0.7", marginTop: "1px" }}
-              >
-                Sig.
+        <Fragment key={day.id}>
+          {day.isNextWeek && (
+            <div
+              style={{
+                width: "2px",
+                backgroundColor: "#e5e7eb",
+                margin: "4px 8px",
+                borderRadius: "1px",
+                alignSelf: "stretch",
+              }}
+            />
+          )}
+
+          <button
+            onClick={() => onDaySelect(day.id)}
+            style={{
+              flex: "1 1 0",
+              minWidth: "0",
+              padding: "8px 1px",
+              borderRadius: "6px",
+              fontSize: "14px",
+              fontWeight: "500",
+              textAlign: "center",
+              cursor: "pointer",
+              transition: "all 0.2s",
+              backgroundColor:
+                selectedDay === day.id ? "white" : "rgba(255, 255, 255, 0.1)",
+              color: selectedDay === day.id ? "#2563eb" : "#6b7280",
+              boxShadow:
+                selectedDay === day.id
+                  ? "0 1px 3px rgba(0, 0, 0, 0.1)"
+                  : "none",
+              transform: selectedDay === day.id ? "scale(1.05)" : "scale(1)",
+              border: "none",
+            }}
+            onMouseEnter={(e) => {
+              if (selectedDay !== day.id) {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255, 255, 255, 0.2)";
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (selectedDay !== day.id) {
+                e.currentTarget.style.backgroundColor =
+                  "rgba(255, 255, 255, 0.1)";
+              }
+            }}
+          >
+            <div style={{ lineHeight: "1" }}>
+              <div style={{ opacity: "0.75", marginBottom: "1px" }}>
+                {getDateForDay(day.id === 15 ? 5 : day.id, day.isNextWeek)}
               </div>
-            )}
-          </div>
-        </button>
+              <div>{day.name}</div>
+              {day.isNextWeek && (
+                <div
+                  style={{ fontSize: "8px", opacity: "0.7", marginTop: "1px" }}
+                >
+                  Sig.
+                </div>
+              )}
+            </div>
+          </button>
+        </Fragment>
       ))}
     </div>
   );

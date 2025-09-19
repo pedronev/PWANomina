@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 interface WeekNavigationProps {
   weekRange: string;
   weekDescription: string;
+  canNavigateToFuture: boolean;
   onPreviousWeek: () => void;
   onNextWeek: () => void;
 }
@@ -12,6 +13,7 @@ const WeekNavigation = memo(
   ({
     weekRange,
     weekDescription,
+    canNavigateToFuture,
     onPreviousWeek,
     onNextWeek,
   }: WeekNavigationProps) => {
@@ -31,13 +33,17 @@ const WeekNavigation = memo(
             <p className="text-xs text-gray-500">{weekDescription}</p>
           </div>
 
-          <button
-            onClick={onNextWeek}
-            className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
-            aria-label="Semana siguiente"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-600" />
-          </button>
+          {canNavigateToFuture ? (
+            <button
+              onClick={onNextWeek}
+              className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+              aria-label="Semana siguiente"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-600" />
+            </button>
+          ) : (
+            <div className="p-2 w-9 h-9" />
+          )}
         </div>
       </div>
     );

@@ -21,7 +21,7 @@ import {
   formatProcess,
 } from "@/app/utils/recordsUtils";
 
-export const useRecords = (): RecordsHookReturn => {
+export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
   const { user } = useAuth();
   const [allRecords, setAllRecords] = useLocalStorage<WorkRecord[]>(
     STORAGE_KEY,
@@ -31,8 +31,33 @@ export const useRecords = (): RecordsHookReturn => {
   // Filtrar solo los registros del usuario autenticado
   const records = useMemo(() => {
     if (!user) return [];
-    return allRecords.filter((record) => record.user_id === user.id);
-  }, [allRecords, user]);
+
+    const today = new Date();
+    const currentDay = today.getDay();
+
+    // Calcular el viernes de la semana seleccionada
+    const friday = new Date(today);
+    if (currentDay >= 5) {
+      friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
+    } else {
+      friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
+    }
+
+    const thursday = new Date(friday);
+    thursday.setDate(friday.getDate() + 6);
+
+    // Formatear fechas para comparación
+    const startDate = friday.toISOString().split("T")[0];
+    const endDate = thursday.toISOString().split("T")[0];
+
+    return allRecords.filter((record) => {
+      return (
+        record.user_id === user.id &&
+        record.date >= startDate &&
+        record.date <= endDate
+      );
+    });
+  }, [allRecords, user, weekOffset]);
 
   // Queries
   const getRecordsForDay = useCallback(

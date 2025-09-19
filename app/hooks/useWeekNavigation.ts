@@ -39,14 +39,21 @@ export const useWeekNavigation = () => {
     return `${Math.abs(currentWeekOffset)} semana(s) atrás`;
   }, [currentWeekOffset]);
 
+  // Verificar si se puede navegar al futuro
+  const canNavigateToFuture = useMemo(() => {
+    return currentWeekOffset < 0;
+  }, [currentWeekOffset]);
+
   // Funciones de navegación memoizadas
   const navigateToPreviousWeek = useCallback(() => {
     setCurrentWeekOffset((prev) => prev - 1);
   }, []);
 
   const navigateToNextWeek = useCallback(() => {
-    setCurrentWeekOffset((prev) => prev + 1);
-  }, []);
+    if (currentWeekOffset < 0) {
+      setCurrentWeekOffset((prev) => prev + 1);
+    }
+  }, [currentWeekOffset]);
 
   const navigateToCurrentWeek = useCallback(() => {
     setCurrentWeekOffset(0);
@@ -56,6 +63,7 @@ export const useWeekNavigation = () => {
     currentWeekOffset,
     weekRange,
     weekDescription,
+    canNavigateToFuture,
     navigateToPreviousWeek,
     navigateToNextWeek,
     navigateToCurrentWeek,

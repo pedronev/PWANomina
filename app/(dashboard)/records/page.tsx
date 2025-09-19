@@ -29,15 +29,17 @@ const RecordsLoading = () => (
 );
 
 export default function RecordsPage() {
-  const { records, getRecordsForDay, deleteRecord, reorderRecords, stats } =
-    useRecords();
-
   const {
     weekRange,
     weekDescription,
+    canNavigateToFuture,
     navigateToPreviousWeek,
     navigateToNextWeek,
+    currentWeekOffset,
   } = useWeekNavigation();
+
+  const { records, getRecordsForDay, deleteRecord, reorderRecords, stats } =
+    useRecords(currentWeekOffset);
 
   // Crear array plano con separadores para drag & drop
   const flattenedItems = useMemo(() => {
@@ -68,6 +70,7 @@ export default function RecordsPage() {
         <WeekNavigation
           weekRange={weekRange}
           weekDescription={weekDescription}
+          canNavigateToFuture={canNavigateToFuture}
           onPreviousWeek={navigateToPreviousWeek}
           onNextWeek={navigateToNextWeek}
         />
@@ -93,6 +96,7 @@ export default function RecordsPage() {
                       key={`separator-${item.dayId}`}
                       item={item}
                       recordCount={dayRecords.length}
+                      weekOffset={currentWeekOffset}
                     />
                   );
                 }
