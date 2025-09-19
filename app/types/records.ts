@@ -1,7 +1,6 @@
-// app/types/records.ts
-
 export interface WorkRecord {
   readonly id: string;
+  readonly user_id: string;
   readonly day: number;
   readonly process: string;
   readonly code: string;

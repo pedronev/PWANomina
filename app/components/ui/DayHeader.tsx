@@ -1,8 +1,6 @@
-// app/components/ui/DayHeader.tsx
-
 "use client";
 
-import { memo, useMemo } from "react";
+import { memo } from "react";
 import { Reorder } from "framer-motion";
 import { Calendar } from "lucide-react";
 import type { DaySeparator } from "@/app/types/records";
@@ -13,10 +11,6 @@ interface DayHeaderProps {
 }
 
 const DayHeader = memo(({ item, recordCount }: DayHeaderProps) => {
-  const recordText = useMemo(() => {
-    return `(${recordCount} registro${recordCount !== 1 ? "s" : ""})`;
-  }, [recordCount]);
-
   const isNextWeek = item.dayId === 15;
 
   return (
@@ -50,7 +44,7 @@ const DayHeader = memo(({ item, recordCount }: DayHeaderProps) => {
           isNextWeek ? "text-orange-600" : "text-gray-500"
         }`}
       >
-        {recordText}
+        ({recordCount} registro{recordCount !== 1 ? "s" : ""})
       </span>
     </Reorder.Item>
   );

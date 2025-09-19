@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from "react";
 import { useLocalStorage } from "./useLocalStorage";
+import { useAuth } from "@/app/context/AuthContext";
 import type {
   WorkRecord,
   CreateRecordData,
@@ -7,11 +8,7 @@ import type {
   ReorderItem,
   RecordsHookReturn,
 } from "@/app/types/records";
-import {
-  STORAGE_KEY,
-  INITIAL_RECORDS,
-  DEFAULT_DAY,
-} from "@/app/constants/records";
+import { STORAGE_KEY, DEFAULT_DAY } from "@/app/constants/records";
 import {
   generateId,
   getCurrentDate,
@@ -25,9 +22,17 @@ import {
 } from "@/app/utils/recordsUtils";
 
 export const useRecords = (): RecordsHookReturn => {
-  const [records, setRecords] = useLocalStorage<WorkRecord[]>(STORAGE_KEY, [
-    ...INITIAL_RECORDS,
-  ]);
+  const { user } = useAuth();
+  const [allRecords, setAllRecords] = useLocalStorage<WorkRecord[]>(
+    STORAGE_KEY,
+    []
+  );
+
+  // Filtrar solo los registros del usuario autenticado
+  const records = useMemo(() => {
+    if (!user) return [];
+    return allRecords.filter((record) => record.user_id === user.id);
+  }, [allRecords, user]);
 
   // Queries
   const getRecordsForDay = useCallback(
@@ -63,6 +68,11 @@ export const useRecords = (): RecordsHookReturn => {
   // Mutations
   const addRecord = useCallback(
     (data: CreateRecordData): WorkRecord | null => {
+      if (!user) {
+        console.error("Usuario no autenticado");
+        return null;
+      }
+
       if (!isValidDay(data.day)) {
         console.error(`Invalid day: ${data.day}`);
         return null;
@@ -80,6 +90,7 @@ export const useRecords = (): RecordsHookReturn => {
 
       const newRecord: WorkRecord = {
         id: generateId(),
+        user_id: user.id,
         day: data.day,
         process: formatProcess(data.process),
         code: formatCode(data.code),
@@ -87,14 +98,19 @@ export const useRecords = (): RecordsHookReturn => {
         createdAt: getCurrentTimestamp(),
       };
 
-      setRecords((prev) => [...prev, newRecord]);
+      setAllRecords((prev) => [...prev, newRecord]);
       return newRecord;
     },
-    [setRecords]
+    [user, setAllRecords]
   );
 
   const deleteRecord = useCallback(
     (recordId: string): boolean => {
+      if (!user) {
+        console.error("Usuario no autenticado");
+        return false;
+      }
+
       if (!isValidRecordId(recordId)) {
         console.error("Invalid record ID");
         return false;
@@ -106,14 +122,19 @@ export const useRecords = (): RecordsHookReturn => {
         return false;
       }
 
-      setRecords((prev) => prev.filter((record) => record.id !== recordId));
+      setAllRecords((prev) => prev.filter((record) => record.id !== recordId));
       return true;
     },
-    [records, setRecords]
+    [user, records, setAllRecords]
   );
 
   const reorderRecords = useCallback(
     (newOrder: ReorderItem[]): void => {
+      if (!user) {
+        console.error("Usuario no autenticado");
+        return;
+      }
+
       const updatedRecords: WorkRecord[] = [];
       let currentDay: number = DEFAULT_DAY;
 
@@ -133,14 +154,27 @@ export const useRecords = (): RecordsHookReturn => {
         }
       });
 
-      setRecords(updatedRecords);
+      // Actualizar solo los registros del usuario actual
+      setAllRecords((prev) => {
+        const otherUsersRecords = prev.filter(
+          (record) => record.user_id !== user.id
+        );
+        return [...otherUsersRecords, ...updatedRecords];
+      });
     },
-    [records, setRecords]
+    [user, records, setAllRecords]
   );
 
   const clearAllRecords = useCallback((): void => {
-    setRecords([]);
-  }, [setRecords]);
+    if (!user) {
+      console.error("Usuario no autenticado");
+      return;
+    }
+
+    setAllRecords((prev) =>
+      prev.filter((record) => record.user_id !== user.id)
+    );
+  }, [user, setAllRecords]);
 
   // Stats
   const stats = useMemo((): RecordStats => {

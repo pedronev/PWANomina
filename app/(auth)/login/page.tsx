@@ -1,27 +1,52 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { User, Lock, Eye, EyeOff } from "lucide-react";
+import { User, Lock, Eye, EyeOff, AlertCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+
+  const { login, isLoading, error, clearError, isAuthenticated } = useAuth();
   const router = useRouter();
+
+  // Redirigir si ya está autenticado
+  useEffect(() => {
+    if (isAuthenticated) {
+      router.push("/records");
+    }
+  }, [isAuthenticated, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    // Simular login - aquí iría la lógica de Supabase
-    setTimeout(() => {
-      setIsLoading(false);
-      router.push("/add-code");
-    }, 1500);
+    if (!username.trim() || !password.trim()) {
+      return;
+    }
+
+    const success = await login({ username: username.trim(), password });
+
+    if (success) {
+      router.push("/records");
+    }
   };
+
+  // Limpiar error cuando el usuario escribe
+  const handleUsernameChange = (value: string) => {
+    setUsername(value);
+    if (error) clearError();
+  };
+
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    if (error) clearError();
+  };
+
+  const canSubmit = username.trim() && password.trim() && !isLoading;
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -55,20 +80,35 @@ export default function LoginPage() {
           className="bg-white rounded-2xl shadow-xl p-8"
         >
           <form onSubmit={handleLogin} className="space-y-6">
-            {/* Email */}
+            {/* Error message */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="bg-red-50 border border-red-200 rounded-lg p-3"
+              >
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-500" />
+                  <p className="text-sm text-red-800 font-medium">{error}</p>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Username */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Correo electrónico
+                Usuario
               </label>
               <div className="relative">
                 <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  type="text"
+                  value={username}
+                  onChange={(e) => handleUsernameChange(e.target.value)}
                   className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
-                  placeholder="usuario@ejemplo.com"
+                  placeholder="Ingresa tu usuario"
                   required
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -83,15 +123,17 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={(e) => handlePasswordChange(e.target.value)}
                   className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"
                   placeholder="••••••••"
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 disabled:opacity-50"
+                  disabled={isLoading}
                 >
                   {showPassword ? (
                     <EyeOff className="w-5 h-5" />
@@ -106,11 +148,11 @@ export default function LoginPage() {
             <motion.button
               whileTap={{ scale: 0.98 }}
               type="submit"
-              disabled={isLoading || !email || !password}
+              disabled={!canSubmit}
               className={`w-full py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
-                isLoading || !email || !password
-                  ? "bg-gray-300 text-gray-500 cursor-not-allowed"
-                  : "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
+                canSubmit
+                  ? "bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl"
+                  : "bg-gray-300 text-gray-500 cursor-not-allowed"
               }`}
             >
               {isLoading ? (
@@ -123,6 +165,21 @@ export default function LoginPage() {
               )}
             </motion.button>
           </form>
+
+          {/* Credenciales de prueba */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+            <p className="text-xs text-gray-600 font-medium mb-2">
+              Credenciales de prueba:
+            </p>
+            <div className="text-xs text-gray-500 space-y-1">
+              <p>
+                <strong>Empleado 1:</strong> empleado1 / pass123
+              </p>
+              <p>
+                <strong>Empleado 2:</strong> empleado2 / pass456
+              </p>
+            </div>
+          </div>
 
           {/* Footer */}
           <div className="mt-6 text-center">
