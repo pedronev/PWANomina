@@ -5,9 +5,9 @@ import type { WorkRecord } from "@/app/types/records";
 export const useDragDrop = (
   records: WorkRecord[],
   getRecordsForDay: (dayId: number) => WorkRecord[],
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   reorderRecords: (newOrder: any[]) => void
 ) => {
-  // Crear array plano optimizado para drag & drop
   const flattenedItems = useMemo(() => {
     const flattened: (
       | WorkRecord
@@ -30,8 +30,8 @@ export const useDragDrop = (
     return flattened;
   }, [getRecordsForDay]);
 
-  // Función optimizada para manejar reordenamiento
   const handleReorder = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (newOrder: any[]) => {
       reorderRecords(newOrder);
     },
