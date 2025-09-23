@@ -92,7 +92,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
 
   // Mutations
   const addRecord = useCallback(
-    (data: CreateRecordData): WorkRecord | null => {
+    async (data: CreateRecordData): Promise<WorkRecord | null> => {
       if (!user) {
         console.error("Usuario no autenticado");
         return null;
@@ -124,6 +124,23 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       };
 
       setAllRecords((prev) => [...prev, newRecord]);
+      try {
+        await fetch("/api/codigos-trabajo", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            empleado_id: user.id,
+            codigo: data.code,
+            proceso: data.process,
+            fecha: getCurrentDate(),
+          }),
+        });
+      } catch (error) {
+        console.error("Error guardando en BD:", error);
+      }
+
       return newRecord;
     },
     [user, setAllRecords]
