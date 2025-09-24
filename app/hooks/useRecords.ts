@@ -48,32 +48,29 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
     }
 
     try {
-      // Calcular la semana basada en weekOffset
+      // Usar la misma lógica que el trigger de la BD
       const today = new Date();
-      const currentDay = today.getDay();
 
-      const friday = new Date(today);
-      if (currentDay >= 5) {
-        friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
-      } else {
-        friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
-      }
+      // Ajustar fecha basada en weekOffset
+      const targetDate = new Date(today);
+      targetDate.setDate(today.getDate() + weekOffset * 7);
 
-      // Calcular year_week para la consulta
-      const getWeekFromDate = (date: Date): string => {
-        const d = new Date(
-          Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+      // Calcular year_week usando la misma lógica que PostgreSQL TO_CHAR
+      const getPostgreSQLWeek = (date: Date): string => {
+        const year = date.getFullYear();
+        const startOfYear = new Date(year, 0, 1);
+        const days = Math.floor(
+          (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
         );
-        const dayNum = d.getUTCDay() || 7;
-        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
-        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-        const weekNo = Math.ceil(
-          ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
-        );
-        return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, "0")}`;
+        const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+        return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
       };
 
-      const currentWeek = getWeekFromDate(friday);
+      const currentWeek = getPostgreSQLWeek(targetDate);
+
+      console.log("Fecha objetivo:", targetDate.toISOString());
+      console.log("Semana calculada:", currentWeek);
+      console.log("WeekOffset:", weekOffset);
 
       const response = await fetch(
         `/api/codigos-trabajo?empleado_id=${user.id}&year_week=${currentWeek}`
@@ -81,6 +78,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       if (!response.ok) throw new Error("Error al obtener códigos");
 
       const codigosData: CodigoFromDB[] = await response.json();
+      console.log("Códigos obtenidos:", codigosData);
 
       const workRecords: WorkRecord[] = codigosData.map((codigo) => {
         const day = getDayFromDate(codigo.fecha);
@@ -101,7 +99,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       console.error("Error fetching records:", error);
       setRecords([]);
     }
-  }, [user, weekOffset]); // Agregar weekOffset a las dependencias
+  }, [user, weekOffset]);
 
   // Cargar datos al inicializar o cambiar usuario
   useEffect(() => {
