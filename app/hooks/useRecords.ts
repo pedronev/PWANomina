@@ -29,7 +29,7 @@ interface CodigoFromDB {
   creado_en: string;
 }
 
-export const useRecords = (): RecordsHookReturn => {
+export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
   const { user } = useAuth();
   const [records, setRecords] = useState<WorkRecord[]>([]);
 
@@ -48,8 +48,35 @@ export const useRecords = (): RecordsHookReturn => {
     }
 
     try {
+      // Calcular la semana basada en weekOffset
+      const today = new Date();
+      const currentDay = today.getDay();
+
+      const friday = new Date(today);
+      if (currentDay >= 5) {
+        friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
+      } else {
+        friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
+      }
+
+      // Calcular year_week para la consulta
+      const getWeekFromDate = (date: Date): string => {
+        const d = new Date(
+          Date.UTC(date.getFullYear(), date.getMonth(), date.getDate())
+        );
+        const dayNum = d.getUTCDay() || 7;
+        d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+        const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+        const weekNo = Math.ceil(
+          ((d.getTime() - yearStart.getTime()) / 86400000 + 1) / 7
+        );
+        return `${d.getUTCFullYear()}-W${weekNo.toString().padStart(2, "0")}`;
+      };
+
+      const currentWeek = getWeekFromDate(friday);
+
       const response = await fetch(
-        `/api/codigos-trabajo?empleado_id=${user.id}`
+        `/api/codigos-trabajo?empleado_id=${user.id}&year_week=${currentWeek}`
       );
       if (!response.ok) throw new Error("Error al obtener códigos");
 
@@ -74,7 +101,7 @@ export const useRecords = (): RecordsHookReturn => {
       console.error("Error fetching records:", error);
       setRecords([]);
     }
-  }, [user]); // Remover weekOffset de las dependencias
+  }, [user, weekOffset]); // Agregar weekOffset a las dependencias
 
   // Cargar datos al inicializar o cambiar usuario
   useEffect(() => {
