@@ -3,10 +3,10 @@ import { supabase } from "@/app/lib/supabase";
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { id } = params;
+    const { id } = await params; // Agregar await aquí
 
     if (!id) {
       return NextResponse.json({ error: "ID es requerido" }, { status: 400 });
