@@ -1,5 +1,4 @@
-import { useMemo, useCallback } from "react";
-import { useLocalStorage } from "./useLocalStorage";
+import { useMemo, useCallback, useState, useEffect } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import type {
   WorkRecord,
@@ -8,9 +7,8 @@ import type {
   ReorderItem,
   RecordsHookReturn,
 } from "@/app/types/records";
-import { STORAGE_KEY, DEFAULT_DAY } from "@/app/constants/records";
+import { DEFAULT_DAY } from "@/app/constants/records";
 import {
-  generateId,
   getCurrentDate,
   getCurrentTimestamp,
   isValidDay,
@@ -21,43 +19,67 @@ import {
   formatProcess,
 } from "@/app/utils/recordsUtils";
 
-export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
+// Definir tipos para evitar any
+interface CodigoFromDB {
+  id: string;
+  empleado_id: string;
+  codigo: string;
+  proceso: string;
+  fecha: string;
+  creado_en: string;
+}
+
+export const useRecords = (): RecordsHookReturn => {
   const { user } = useAuth();
-  const [allRecords, setAllRecords] = useLocalStorage<WorkRecord[]>(
-    STORAGE_KEY,
-    []
-  );
+  const [records, setRecords] = useState<WorkRecord[]>([]);
 
-  // Filtrar solo los registros del usuario autenticado
-  const records = useMemo(() => {
-    if (!user) return [];
+  // Función auxiliar para convertir fecha a día de la semana según el sistema de la PWA
+  const getDayFromDate = (dateString: string): number => {
+    const date = new Date(dateString + "T00:00:00");
+    const dayOfWeek = date.getDay();
+    return dayOfWeek;
+  };
 
-    const today = new Date();
-    const currentDay = today.getDay();
-
-    // Calcular el viernes de la semana seleccionada
-    const friday = new Date(today);
-    if (currentDay >= 5) {
-      friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
-    } else {
-      friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
+  // Función para obtener códigos de la base de datos
+  const fetchRecords = useCallback(async () => {
+    if (!user) {
+      setRecords([]);
+      return;
     }
 
-    const thursday = new Date(friday);
-    thursday.setDate(friday.getDate() + 6);
-
-    // Formatear fechas para comparación
-    const startDate = friday.toISOString().split("T")[0];
-    const endDate = thursday.toISOString().split("T")[0];
-
-    return allRecords.filter((record) => {
-      return (
-        record.user_id === user.id &&
-        record.date >= startDate &&
-        record.date <= endDate
+    try {
+      const response = await fetch(
+        `/api/codigos-trabajo?empleado_id=${user.id}`
       );
-    });
-  }, [allRecords, user, weekOffset]);
+      if (!response.ok) throw new Error("Error al obtener códigos");
+
+      const codigosData: CodigoFromDB[] = await response.json();
+
+      const workRecords: WorkRecord[] = codigosData.map((codigo) => {
+        const day = getDayFromDate(codigo.fecha);
+
+        return {
+          id: codigo.id,
+          user_id: user.id,
+          day: day,
+          process: codigo.proceso,
+          code: codigo.codigo,
+          date: codigo.fecha,
+          createdAt: codigo.creado_en,
+        };
+      });
+
+      setRecords(workRecords);
+    } catch (error) {
+      console.error("Error fetching records:", error);
+      setRecords([]);
+    }
+  }, [user]); // Remover weekOffset de las dependencias
+
+  // Cargar datos al inicializar o cambiar usuario
+  useEffect(() => {
+    fetchRecords();
+  }, [fetchRecords]);
 
   // Queries
   const getRecordsForDay = useCallback(
@@ -113,19 +135,8 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         return null;
       }
 
-      const newRecord: WorkRecord = {
-        id: generateId(),
-        user_id: user.id,
-        day: data.day,
-        process: formatProcess(data.process),
-        code: formatCode(data.code),
-        date: getCurrentDate(),
-        createdAt: getCurrentTimestamp(),
-      };
-
-      setAllRecords((prev) => [...prev, newRecord]);
       try {
-        await fetch("/api/codigos-trabajo", {
+        const response = await fetch("/api/codigos-trabajo", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -137,17 +148,36 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
             fecha: getCurrentDate(),
           }),
         });
-      } catch (error) {
-        console.error("Error guardando en BD:", error);
-      }
 
-      return newRecord;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || "Error al guardar código");
+        }
+
+        const savedCodigo = await response.json();
+
+        const newRecord: WorkRecord = {
+          id: savedCodigo.id,
+          user_id: user.id,
+          day: data.day,
+          process: formatProcess(data.process),
+          code: formatCode(data.code),
+          date: getCurrentDate(),
+          createdAt: savedCodigo.creado_en || getCurrentTimestamp(),
+        };
+
+        setRecords((prev) => [...prev, newRecord]);
+        return newRecord;
+      } catch (error) {
+        console.error("Error guardando código:", error);
+        throw error;
+      }
     },
-    [user, setAllRecords]
+    [user]
   );
 
   const deleteRecord = useCallback(
-    (recordId: string): boolean => {
+    async (recordId: string): Promise<boolean> => {
       if (!user) {
         console.error("Usuario no autenticado");
         return false;
@@ -158,27 +188,74 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         return false;
       }
 
-      const recordExists = records.some((record) => record.id === recordId);
-      if (!recordExists) {
-        console.warn(`Record with ID ${recordId} not found`);
+      try {
+        const response = await fetch(`/api/codigos-trabajo/${recordId}`, {
+          method: "DELETE",
+        });
+
+        if (!response.ok) {
+          throw new Error("Error al eliminar código");
+        }
+
+        setRecords((prev) => prev.filter((record) => record.id !== recordId));
+        return true;
+      } catch (error) {
+        console.error("Error eliminando código:", error);
         return false;
       }
-
-      setAllRecords((prev) => prev.filter((record) => record.id !== recordId));
-      return true;
     },
-    [user, records, setAllRecords]
+    [user]
   );
 
   const reorderRecords = useCallback(
-    (newOrder: ReorderItem[]): void => {
+    async (newOrder: ReorderItem[]): Promise<void> => {
       if (!user) {
         console.error("Usuario no autenticado");
         return;
       }
 
       const updatedRecords: WorkRecord[] = [];
+      const updatePromises: Promise<Response>[] = [];
       let currentDay: number = DEFAULT_DAY;
+
+      const getDayDate = (dayId: number): string => {
+        const today = new Date();
+        const currentDayOfWeek = today.getDay();
+
+        const targetDate = new Date(today); // Cambiar let a const
+
+        let dayDiff = 0;
+        if (currentDayOfWeek >= 5) {
+          const daysSinceFriday = currentDayOfWeek - 5;
+          const dayOrder: { [key: number]: number } = {
+            5: 0,
+            6: 1,
+            0: 2,
+            1: 3,
+            2: 4,
+            3: 5,
+            4: 6,
+            15: 7,
+          };
+          dayDiff = dayOrder[dayId] - daysSinceFriday;
+        } else {
+          const daysSinceFriday = currentDayOfWeek + 2;
+          const dayOrder: { [key: number]: number } = {
+            5: 0,
+            6: 1,
+            0: 2,
+            1: 3,
+            2: 4,
+            3: 5,
+            4: 6,
+            15: 7,
+          };
+          dayDiff = dayOrder[dayId] - daysSinceFriday;
+        }
+
+        targetDate.setDate(today.getDate() + dayDiff);
+        return targetDate.toISOString().split("T")[0];
+      };
 
       newOrder.forEach((item) => {
         if ("type" in item && item.type === "separator") {
@@ -188,23 +265,47 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         } else if ("id" in item && item.id) {
           const existingRecord = records.find((r) => r.id === item.id);
           if (existingRecord) {
-            updatedRecords.push({
+            const newDate = getDayDate(currentDay);
+            const updatedRecord = {
               ...existingRecord,
               day: currentDay,
-            });
+              date: newDate,
+            };
+
+            updatedRecords.push(updatedRecord);
+
+            if (existingRecord.date !== newDate) {
+              const updatePromise = fetch("/api/codigos-trabajo/update-fecha", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  codigo_id: existingRecord.id,
+                  nueva_fecha: newDate,
+                }),
+              });
+
+              updatePromises.push(updatePromise);
+            }
           }
         }
       });
 
-      // Actualizar solo los registros del usuario actual
-      setAllRecords((prev) => {
-        const otherUsersRecords = prev.filter(
-          (record) => record.user_id !== user.id
-        );
-        return [...otherUsersRecords, ...updatedRecords];
-      });
+      setRecords(updatedRecords);
+
+      if (updatePromises.length > 0) {
+        try {
+          await Promise.all(updatePromises);
+          console.log(
+            `${updatePromises.length} fechas actualizadas en la base de datos`
+          );
+        } catch (error) {
+          console.error("Error actualizando fechas en BD:", error);
+        }
+      }
     },
-    [user, records, setAllRecords]
+    [user, records]
   );
 
   const clearAllRecords = useCallback((): void => {
@@ -213,12 +314,9 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       return;
     }
 
-    setAllRecords((prev) =>
-      prev.filter((record) => record.user_id !== user.id)
-    );
-  }, [user, setAllRecords]);
+    setRecords([]);
+  }, [user]);
 
-  // Stats
   const stats = useMemo((): RecordStats => {
     const recordsByDay: Record<number, number> = {};
 

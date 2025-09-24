@@ -34,8 +34,8 @@ export interface RecordsHookReturn {
   readonly findRecordsByCode: (code: string) => WorkRecord[];
   readonly getRecordsByProcess: (process: string) => WorkRecord[];
   readonly stats: RecordStats;
-  readonly addRecord: (data: CreateRecordData) => WorkRecord | null;
-  readonly deleteRecord: (recordId: string) => boolean;
-  readonly reorderRecords: (newOrder: ReorderItem[]) => void;
+  readonly addRecord: (data: CreateRecordData) => Promise<WorkRecord | null>; // Cambiar a Promise
+  readonly deleteRecord: (recordId: string) => Promise<boolean>; // Cambiar a Promise
+  readonly reorderRecords: (newOrder: ReorderItem[]) => Promise<void>; // Ya es Promise
   readonly clearAllRecords: () => void;
 }

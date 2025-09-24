@@ -49,6 +49,21 @@ export async function GET(request: NextRequest) {
       query = query.eq("empleado_id", empleado_id);
     }
 
+    // if (empleado_nombre) {
+    //   // Buscar empleado por nombre primero
+    //   const { data: empleadoData } = await supabase
+    //     .from("empleados")
+    //     .select("id")
+    //     .eq("nombre", empleado_nombre)
+    //     .single();
+
+    //   if (empleadoData) {
+    //     query = query.eq("empleado_id", empleadoData.id);
+    //   } else {
+    //     return NextResponse.json([]);
+    //   }
+    // }
+
     if (year_week) {
       query = query.eq("year_week", year_week);
     }
