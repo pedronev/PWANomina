@@ -33,7 +33,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const empleado_id = searchParams.get("empleado_id");
     const year_week = searchParams.get("year_week");
-    const procesado = searchParams.get("procesado");
 
     let query = supabase.from("codigos_trabajo").select(`
         id,
@@ -41,7 +40,6 @@ export async function GET(request: NextRequest) {
         proceso,
         fecha,
         year_week,
-        procesado,
         empleados!codigos_trabajo_empleado_fkey(nombre)
       `);
 
@@ -66,10 +64,6 @@ export async function GET(request: NextRequest) {
 
     if (year_week) {
       query = query.eq("year_week", year_week);
-    }
-
-    if (procesado !== null) {
-      query = query.eq("procesado", procesado === "true");
     }
 
     const { data, error } = await query.order("creado_en", {
