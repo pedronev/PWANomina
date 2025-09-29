@@ -1,6 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabase } from "@/app/lib/supabase";
 
+interface Proceso {
+  id: number;
+  nombre: string;
+}
+
+interface EmpleadoProcesoResponse {
+  proceso_id: number;
+  procesos: Proceso | Proceso[] | null;
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -19,12 +29,22 @@ export async function GET(request: NextRequest) {
       .eq("empleado_id", empleado_id);
 
     if (error) throw error;
+    const typedData = data as unknown as EmpleadoProcesoResponse[] | null;
 
     const procesos =
-      data?.map((item) => ({
-        id: item.procesos.id,
-        nombre: item.procesos.nombre,
-      })) || [];
+      typedData
+        ?.map((item) => {
+          // Manejar tanto si procesos es un objeto como si es un array
+          const proceso = Array.isArray(item.procesos)
+            ? item.procesos[0]
+            : item.procesos;
+
+          return {
+            id: proceso?.id,
+            nombre: proceso?.nombre,
+          };
+        })
+        .filter((p) => p.id && p.nombre) || [];
 
     return NextResponse.json(procesos);
   } catch (error) {
