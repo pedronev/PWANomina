@@ -1,17 +1,19 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import ProcessSelector from "@/app/components/ui/ProcessSelector";
 import CustomKeypad from "@/app/components/ui/CustomKeypad";
 import ErrorMessage from "@/app/components/ui/ErrorMessage";
 import { useWeek } from "@/app/hooks/useWeek";
 import { useAddCode } from "@/app/hooks/useAddCode";
-
-// Constantes de procesos (esto podría venir de una API o config)
-const AVAILABLE_PROCESSES = ["Proceso A", "Proceso B", "Proceso C"] as const;
+import { useAuth } from "@/app/context/AuthContext";
 
 export default function AddCodePage() {
   const { selectedDay, setSelectedDay, getWeekRange, daysOfWeek } = useWeek();
+  const { user } = useAuth();
+  const [availableProcesses, setAvailableProcesses] = useState<string[]>([]);
+  const [isLoadingProcesses, setIsLoadingProcesses] = useState(true);
 
   const {
     selectedProcess,
@@ -22,7 +24,54 @@ export default function AddCodePage() {
     setCode,
     handleSave,
     canSave,
-  } = useAddCode(selectedDay, AVAILABLE_PROCESSES);
+  } = useAddCode(selectedDay, availableProcesses);
+
+  // Cargar procesos del empleado
+  useEffect(() => {
+    const fetchUserProcesses = async () => {
+      if (!user) return;
+
+      setIsLoadingProcesses(true);
+      try {
+        const response = await fetch(
+          `/api/empleado-procesos?empleado_id=${user.id}`
+        );
+        if (response.ok) {
+          const data = await response.json();
+          const processNames = data.map((p: any) => p.nombre);
+          setAvailableProcesses(processNames);
+        }
+      } catch (error) {
+        console.error("Error loading processes:", error);
+      } finally {
+        setIsLoadingProcesses(false);
+      }
+    };
+
+    fetchUserProcesses();
+  }, [user]);
+
+  if (isLoadingProcesses) {
+    return (
+      <DashboardLayout title="Agregar Código" subtitle={getWeekRange()}>
+        <div className="flex items-center justify-center h-full">
+          <p>Cargando procesos...</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (availableProcesses.length === 0) {
+    return (
+      <DashboardLayout title="Agregar Código" subtitle={getWeekRange()}>
+        <div className="flex items-center justify-center h-full p-6 text-center">
+          <p className="text-gray-600">
+            No tienes procesos asignados. Contacta al administrador.
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout
@@ -44,7 +93,7 @@ export default function AddCodePage() {
           <ProcessSelector
             selectedProcess={selectedProcess}
             onProcessSelect={setSelectedProcess}
-            processes={[...AVAILABLE_PROCESSES]}
+            processes={availableProcesses}
             compact={true}
           />
         </div>
@@ -52,10 +101,7 @@ export default function AddCodePage() {
         {/* Mensaje de error */}
         {error && (
           <div className="px-4 pt-4">
-            <ErrorMessage
-              message={error}
-              onDismiss={() => setCode(code)} // Limpiar error al interactuar
-            />
+            <ErrorMessage message={error} onDismiss={() => setCode(code)} />
           </div>
         )}
 
