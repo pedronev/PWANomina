@@ -26,7 +26,6 @@ export default function AddCodePage() {
     canSave,
   } = useAddCode(selectedDay, availableProcesses);
 
-  // Cargar procesos del empleado
   useEffect(() => {
     const fetchUserProcesses = async () => {
       if (!user) return;
@@ -38,7 +37,6 @@ export default function AddCodePage() {
         );
         if (response.ok) {
           const data = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const processNames = data.map((p: any) => p.nombre);
           setAvailableProcesses(processNames);
         }
@@ -85,10 +83,11 @@ export default function AddCodePage() {
         daysOfWeek,
       }}
     >
-      <div className="h-full flex flex-col">
-        {/* Selector de proceso */}
-        <div className="p-4 bg-white border-b border-gray-100">
-          <label className="block text-xs font-medium text-gray-700 mb-2">
+      {/* Contenedor principal con altura fija */}
+      <div className="h-full flex flex-col overflow-hidden">
+        {/* Selector de proceso - altura fija */}
+        <div className="flex-none p-3 bg-white border-b border-gray-100">
+          <label className="block text-xs font-medium text-gray-700 mb-1.5">
             Selecciona el proceso
           </label>
           <ProcessSelector
@@ -99,25 +98,26 @@ export default function AddCodePage() {
           />
         </div>
 
-        {/* Mensaje de error */}
+        {/* Mensaje de error - altura fija cuando aparece */}
         {error && (
-          <div className="px-4 pt-4">
+          <div className="flex-none px-3 pt-2">
             <ErrorMessage message={error} onDismiss={() => setCode(code)} />
           </div>
         )}
 
-        {/* Código de trabajo */}
-        <div className="flex-1 flex flex-col bg-white">
-          <div className="flex-1 p-2">
+        {/* Contenedor del keypad y botón - ocupa el espacio restante */}
+        <div className="flex-1 flex flex-col bg-white min-h-0">
+          {/* Keypad - crece para llenar el espacio disponible */}
+          <div className="flex-1 p-2 min-h-0 overflow-hidden">
             <CustomKeypad value={code} onChange={setCode} />
           </div>
 
-          {/* Botón de guardar */}
-          <div className="p-2 border-t border-gray-100">
+          {/* Botón de guardar - altura fija */}
+          <div className="flex-none p-2 border-t border-gray-100">
             <button
               onClick={handleSave}
               disabled={!canSave || isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-bold text-2xl transition-all duration-200 shadow-sm ${
+              className={`w-full py-2.5 px-4 rounded-lg font-bold text-xl transition-all duration-200 shadow-sm ${
                 canSave && !isLoading
                   ? "bg-blue-600 hover:bg-blue-700 text-white transform hover:scale-[1.02] active:scale-[0.98]"
                   : "bg-gray-100 text-gray-400 cursor-not-allowed"
@@ -125,7 +125,7 @@ export default function AddCodePage() {
             >
               {isLoading ? (
                 <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   Guardando...
                 </div>
               ) : (
