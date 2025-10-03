@@ -25,7 +25,7 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
   return (
     <div className="h-full flex flex-col">
       {/* Display mejorado */}
-      <div className="bg-gray-100 rounded-lg p-6 mx-4 mb-4 flex items-center justify-center border-2 border-dashed border-gray-200 flex-shrink-0">
+      <div className="bg-gray-100 rounded-lg p-2 mx-4 mb-4 flex items-center justify-center border-2 border-dashed border-gray-200 flex-shrink-0">
         <span className="text-3xl font-mono font-bold text-gray-700 tracking-wider">
           {value || "---"}
         </span>
