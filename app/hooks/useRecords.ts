@@ -19,7 +19,6 @@ import {
   formatProcess,
 } from "@/app/utils/recordsUtils";
 
-// Definir tipos para evitar any
 interface CodigoFromDB {
   id: string;
   empleado_id: string;

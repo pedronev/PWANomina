@@ -30,16 +30,26 @@ export default function DashboardLayout({
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
       {title && (
-        <header className="bg-white/90 backdrop-blur-xl border-b border-gray-200 px-6 py-4 safe-area-pt">
-          <div className="flex items-center justify-between mb-3">
+        <header className="bg-white/95 backdrop-blur-xl border-b border-gray-200/50 px-6 pt-6 pb-4 safe-area-pt shadow-sm">
+          <div className="flex items-end justify-between mb-4">
             <div className="flex-1">
-              <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              <motion.h1
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 bg-clip-text text-transparent tracking-tight leading-tight"
+              >
                 {title}
-              </h1>
+              </motion.h1>
               {subtitle && (
-                <p className="text-sm text-gray-500 mt-1 font-medium">
+                <motion.p
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3, delay: 0.1 }}
+                  className="text-sm text-gray-500 mt-1.5 font-medium"
+                >
                   {subtitle}
-                </p>
+                </motion.p>
               )}
             </div>
             {headerAction && <div className="ml-4">{headerAction}</div>}
@@ -47,7 +57,13 @@ export default function DashboardLayout({
 
           {/* Week Selector */}
           {showWeekSelector && weekSelectorProps && (
-            <WeekSelector {...weekSelectorProps} />
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3, delay: 0.15 }}
+            >
+              <WeekSelector {...weekSelectorProps} />
+            </motion.div>
           )}
         </header>
       )}

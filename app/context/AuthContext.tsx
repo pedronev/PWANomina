@@ -6,6 +6,7 @@ import {
   useReducer,
   useCallback,
   useEffect,
+  useState,
   type ReactNode,
 } from "react";
 import { useLocalStorage } from "@/app/hooks/useLocalStorage";
@@ -24,11 +25,19 @@ type AuthAction =
   | { type: "LOGIN_FAILURE"; payload: string }
   | { type: "LOGOUT" }
   | { type: "CLEAR_ERROR" }
-  | { type: "SET_LOADING"; payload: boolean };
+  | { type: "SET_LOADING"; payload: boolean }
+  | { type: "INIT_AUTH"; payload: User | null };
 
 // Reducer
 const authReducer = (state: AuthState, action: AuthAction): AuthState => {
   switch (action.type) {
+    case "INIT_AUTH":
+      return {
+        user: action.payload,
+        isAuthenticated: !!action.payload,
+        isLoading: false,
+        error: null,
+      };
     case "LOGIN_START":
       return {
         ...state,
@@ -75,7 +84,7 @@ const authReducer = (state: AuthState, action: AuthAction): AuthState => {
 const initialState: AuthState = {
   user: null,
   isAuthenticated: false,
-  isLoading: true, // Empezar en true para verificar sesión existente
+  isLoading: true,
   error: null,
 };
 
@@ -93,16 +102,11 @@ const TOKEN_STORAGE_KEY = "auth-token";
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [state, dispatch] = useReducer(authReducer, initialState);
-  const [storedUser, setStoredUser] = useLocalStorage<User | null>(
-    USER_STORAGE_KEY,
-    null
-  );
-  const [authToken, setAuthToken] = useLocalStorage<string | null>(
-    TOKEN_STORAGE_KEY,
-    null
-  );
+  const [storedUser] = useLocalStorage<User | null>(USER_STORAGE_KEY, null);
+  const [authToken] = useLocalStorage<string | null>(TOKEN_STORAGE_KEY, null);
+  const [isInitialized, setIsInitialized] = useState(false);
 
-  // Initialize from storage
+  // Initialize from storage - ejecutar de forma síncrona
   useEffect(() => {
     const initializeAuth = async () => {
       try {
@@ -110,26 +114,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
           // Verificar que el usuario sigue siendo válido
           const user = await AuthService.getUserById(storedUser.id);
           if (user) {
-            dispatch({ type: "LOGIN_SUCCESS", payload: user });
+            dispatch({ type: "INIT_AUTH", payload: user });
           } else {
-            // Usuario ya no válido, limpiar storage
-            setStoredUser(null);
-            setAuthToken(null);
-            dispatch({ type: "LOGOUT" });
+            // Usuario ya no válido
+            dispatch({ type: "INIT_AUTH", payload: null });
           }
         } else {
-          dispatch({ type: "SET_LOADING", payload: false });
+          dispatch({ type: "INIT_AUTH", payload: null });
         }
       } catch (error) {
         console.error("Error inicializando auth:", error);
-        setStoredUser(null);
-        setAuthToken(null);
-        dispatch({ type: "LOGOUT" });
+        dispatch({ type: "INIT_AUTH", payload: null });
+      } finally {
+        setIsInitialized(true);
       }
     };
 
     initializeAuth();
-  }, [storedUser, authToken, setStoredUser, setAuthToken]);
+  }, []); // Solo ejecutar una vez al montar
 
   // Login function usando AuthService
   const login = useCallback(
@@ -147,8 +149,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const token = `token-${user.id}-${Date.now()}`;
 
         // Guardar en localStorage
-        setStoredUser(user);
-        setAuthToken(token);
+        if (typeof window !== "undefined") {
+          localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
+          localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify(token));
+        }
 
         dispatch({ type: "LOGIN_SUCCESS", payload: user });
         return true;
@@ -159,15 +163,17 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         return false;
       }
     },
-    [setStoredUser, setAuthToken]
+    []
   );
 
   // Logout function
   const logout = useCallback(() => {
-    setStoredUser(null);
-    setAuthToken(null);
+    if (typeof window !== "undefined") {
+      localStorage.removeItem(USER_STORAGE_KEY);
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+    }
     dispatch({ type: "LOGOUT" });
-  }, [setStoredUser, setAuthToken]);
+  }, []);
 
   // Clear error function
   const clearError = useCallback(() => {
@@ -180,6 +186,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     logout,
     clearError,
   };
+
+  // No renderizar nada hasta que se haya inicializado
+  if (!isInitialized) {
+    return null;
+  }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };

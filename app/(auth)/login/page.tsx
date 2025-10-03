@@ -28,7 +28,10 @@ export default function LoginPage() {
       return;
     }
 
-    const success = await login({ username: username.trim(), password });
+    const success = await login({
+      username: username.trim().toLowerCase(),
+      password,
+    });
 
     if (success) {
       router.push("/records");

@@ -36,8 +36,8 @@ export default function AddCodePage() {
           `/api/empleado-procesos?empleado_id=${user.id}`
         );
         if (response.ok) {
-          const data = await response.json();
-          const processNames = data.map((p: any) => p.nombre);
+          const data: { nombre: string }[] = await response.json();
+          const processNames = data.map((p) => p.nombre);
           setAvailableProcesses(processNames);
         }
       } catch (error) {
@@ -83,8 +83,7 @@ export default function AddCodePage() {
         daysOfWeek,
       }}
     >
-      {/* Contenedor principal con altura fija */}
-      <div className="h-full flex flex-col overflow-hidden">
+      <div className="h-full flex flex-col overflow-hidden overflow-x-hidden">
         {/* Selector de proceso - altura fija */}
         <div className="flex-none p-3 bg-white border-b border-gray-100">
           <label className="block text-xs font-medium text-gray-700 mb-1.5">
@@ -108,7 +107,7 @@ export default function AddCodePage() {
         {/* Contenedor del keypad y botón - ocupa el espacio restante */}
         <div className="flex-1 flex flex-col bg-white min-h-0">
           {/* Keypad - crece para llenar el espacio disponible */}
-          <div className="flex-1 p-2 min-h-0 overflow-hidden">
+          <div className="flex-1  min-h-0 overflow-hidden">
             <CustomKeypad value={code} onChange={setCode} />
           </div>
 

@@ -30,7 +30,7 @@ const RecordItem = memo(({ record, onDelete }: RecordItemProps) => {
       value={record}
       dragListener={false}
       dragControls={dragControls}
-      className="px-2 py-1 flex items-center justify-between hover:bg-gray-50 bg-white cursor-default"
+      className="px-3 py-2.5 flex items-center gap-3 hover:bg-gray-50 bg-white border-b border-gray-100"
       style={{
         transition: "background-color 0.15s ease",
       }}
@@ -59,18 +59,19 @@ const RecordItem = memo(({ record, onDelete }: RecordItemProps) => {
       }}
       data-record-id={record.id}
     >
-      <div className="flex items-center gap-3 flex-1">
-        <DragHandle onPointerDown={startDrag} />
+      <DragHandle onPointerDown={startDrag} className="flex-shrink-0" />
 
-        <div className="flex-1 pointer-events-none">
-          <p className="font-bold text-gray-900 text-lg">{record.code}</p>
-          <p className="text-sm text-gray-500">{record.process}</p>
-        </div>
+      <div className="flex items-center gap-3 flex-1 min-w-0">
+        <span className="font-bold text-gray-900 text-lg whitespace-nowrap">
+          {record.code}
+        </span>
+        <span className="text-gray-400 select-none">•</span>
+        <span className="text-sm text-gray-600 truncate">{record.process}</span>
       </div>
 
       <button
         onClick={handleDelete}
-        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors pointer-events-auto"
+        className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors flex-shrink-0"
         aria-label={`Eliminar registro ${record.code}`}
       >
         <Trash2 className="w-4 h-4" />
