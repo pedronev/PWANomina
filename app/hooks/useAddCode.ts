@@ -1,5 +1,3 @@
-// app/hooks/useAddCode.ts
-
 import { useState, useCallback } from "react";
 import { useRecords } from "./useRecords";
 import {
@@ -14,6 +12,7 @@ interface UseAddCodeReturn {
   readonly code: string;
   readonly isLoading: boolean;
   readonly error: string | null;
+  readonly successMessage: string | null;
   readonly setSelectedProcess: (index: number | null) => void;
   readonly setCode: (code: string) => void;
   readonly handleSave: () => Promise<void>;
@@ -28,10 +27,10 @@ export const useAddCode = (
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const { addRecord } = useRecords();
 
-  // Validar si se puede guardar
   const canSave = Boolean(
     selectedProcess !== null &&
       code.trim() &&
@@ -41,24 +40,24 @@ export const useAddCode = (
       isValidCode(code)
   );
 
-  // Limpiar error cuando cambian los valores
   const setCodeWithErrorClear = useCallback(
     (newCode: string) => {
       setCode(newCode);
       if (error) setError(null);
+      if (successMessage) setSuccessMessage(null);
     },
-    [error]
+    [error, successMessage]
   );
 
   const setSelectedProcessWithErrorClear = useCallback(
     (index: number | null) => {
       setSelectedProcess(index);
       if (error) setError(null);
+      if (successMessage) setSuccessMessage(null);
     },
-    [error]
+    [error, successMessage]
   );
 
-  // Función para guardar
   const handleSave = useCallback(async (): Promise<void> => {
     if (!canSave) {
       setError("Por favor completa todos los campos correctamente");
@@ -67,9 +66,9 @@ export const useAddCode = (
 
     setIsLoading(true);
     setError(null);
+    setSuccessMessage(null);
 
     try {
-      // Validaciones adicionales
       if (
         selectedProcess === null ||
         selectedProcess < 0 ||
@@ -91,24 +90,28 @@ export const useAddCode = (
         throw new Error("Proceso no válido");
       }
 
-      // Crear registro
       const recordData: CreateRecordData = {
         day: selectedDay,
         process: processName,
         code: code.trim(),
       };
 
-      const newRecord = addRecord(recordData);
+      const newRecord = await addRecord(recordData);
 
       if (!newRecord) {
         throw new Error("Error al crear el registro");
       }
 
-      // Solo limpiar el código, mantener el proceso seleccionado
+      // Mostrar mensaje de éxito
+      setSuccessMessage("¡Código guardado exitosamente!");
+
+      // Limpiar el código
       setCode("");
 
-      // Simular delay para mostrar loading
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      // Auto-limpiar el mensaje después de 3 segundos
+      setTimeout(() => {
+        setSuccessMessage(null);
+      }, 3000);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
@@ -124,6 +127,7 @@ export const useAddCode = (
     code,
     isLoading,
     error,
+    successMessage,
     setSelectedProcess: setSelectedProcessWithErrorClear,
     setCode: setCodeWithErrorClear,
     handleSave,
