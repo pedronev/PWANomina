@@ -67,17 +67,12 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
 
       const currentWeek = getPostgreSQLWeek(targetDate);
 
-      console.log("Fecha objetivo:", targetDate.toISOString());
-      console.log("Semana calculada:", currentWeek);
-      console.log("WeekOffset:", weekOffset);
-
       const response = await fetch(
         `/api/codigos-trabajo?empleado_id=${user.id}&year_week=${currentWeek}`
       );
       if (!response.ok) throw new Error("Error al obtener códigos");
 
       const codigosData: CodigoFromDB[] = await response.json();
-      console.log("Códigos obtenidos:", codigosData);
 
       const workRecords: WorkRecord[] = codigosData.map((codigo) => {
         const day = getDayFromDate(codigo.fecha);
@@ -321,9 +316,6 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       if (updatePromises.length > 0) {
         try {
           await Promise.all(updatePromises);
-          console.log(
-            `${updatePromises.length} fechas actualizadas en la base de datos`
-          );
         } catch (error) {
           console.error("Error actualizando fechas en BD:", error);
         }
