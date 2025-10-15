@@ -12,7 +12,7 @@ interface UseAddCodeReturn {
   readonly code: string;
   readonly isLoading: boolean;
   readonly error: string | null;
-  readonly successMessage: string | null;
+  readonly saveStatus: "idle" | "success" | "error";
   readonly setSelectedProcess: (index: number | null) => void;
   readonly setCode: (code: string) => void;
   readonly handleSave: () => Promise<void>;
@@ -27,7 +27,9 @@ export const useAddCode = (
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
+    "idle"
+  );
 
   const { addRecord } = useRecords();
 
@@ -44,29 +46,31 @@ export const useAddCode = (
     (newCode: string) => {
       setCode(newCode);
       if (error) setError(null);
-      if (successMessage) setSuccessMessage(null);
+      if (saveStatus !== "idle") setSaveStatus("idle");
     },
-    [error, successMessage]
+    [error, saveStatus]
   );
 
   const setSelectedProcessWithErrorClear = useCallback(
     (index: number | null) => {
       setSelectedProcess(index);
       if (error) setError(null);
-      if (successMessage) setSuccessMessage(null);
+      if (saveStatus !== "idle") setSaveStatus("idle");
     },
-    [error, successMessage]
+    [error, saveStatus]
   );
 
   const handleSave = useCallback(async (): Promise<void> => {
     if (!canSave) {
       setError("Por favor completa todos los campos correctamente");
+      setSaveStatus("error");
+      setTimeout(() => setSaveStatus("idle"), 2000);
       return;
     }
 
     setIsLoading(true);
     setError(null);
-    setSuccessMessage(null);
+    setSaveStatus("idle");
 
     try {
       if (
@@ -102,21 +106,22 @@ export const useAddCode = (
         throw new Error("Error al crear el registro");
       }
 
-      // Mostrar mensaje de éxito
-      setSuccessMessage("¡Código guardado exitosamente!");
-
-      // Limpiar el código
+      setSaveStatus("success");
       setCode("");
 
-      // Auto-limpiar el mensaje después de 3 segundos
       setTimeout(() => {
-        setSuccessMessage(null);
-      }, 3000);
+        setSaveStatus("idle");
+      }, 2000);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Error desconocido";
       console.error("Error saving record:", errorMessage);
       setError(errorMessage);
+      setSaveStatus("error");
+
+      setTimeout(() => {
+        setSaveStatus("idle");
+      }, 2000);
     } finally {
       setIsLoading(false);
     }
@@ -127,7 +132,7 @@ export const useAddCode = (
     code,
     isLoading,
     error,
-    successMessage,
+    saveStatus,
     setSelectedProcess: setSelectedProcessWithErrorClear,
     setCode: setCodeWithErrorClear,
     handleSave,

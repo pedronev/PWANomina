@@ -3,7 +3,6 @@ import type { User, LoginCredentials } from "@/app/types/auth";
 import bcrypt from "bcryptjs";
 
 export class AuthService {
-  // Verificar credenciales y obtener usuario
   static async login(credentials: LoginCredentials): Promise<User | null> {
     try {
       const { username, password } = credentials;

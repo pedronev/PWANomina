@@ -5,9 +5,14 @@ import { motion } from "framer-motion";
 interface CustomKeypadProps {
   value: string;
   onChange: (value: string) => void;
+  saveStatus?: "idle" | "success" | "error";
 }
 
-export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
+export default function CustomKeypad({
+  value,
+  onChange,
+  saveStatus = "idle",
+}: CustomKeypadProps) {
   const handleNumberPress = (number: string) => {
     onChange(value + number);
   };
@@ -22,14 +27,44 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
 
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9];
 
+  const getDisplayColors = () => {
+    switch (saveStatus) {
+      case "success":
+        return "bg-green-100 border-green-400";
+      case "error":
+        return "bg-red-100 border-red-400";
+      default:
+        return "bg-gray-100 border-gray-200";
+    }
+  };
+
+  const getTextColor = () => {
+    switch (saveStatus) {
+      case "success":
+        return "text-green-700";
+      case "error":
+        return "text-red-700";
+      default:
+        return "text-gray-700";
+    }
+  };
+
   return (
     <div className="h-full flex flex-col">
-      {/* Display mejorado */}
-      <div className="bg-gray-100 rounded-lg p-2 mx-4 mb-4 flex items-center justify-center border-2 border-dashed border-gray-200 flex-shrink-0">
-        <span className="text-3xl font-mono font-bold text-gray-700 tracking-wider">
+      {/* Display con feedback visual */}
+      <motion.div
+        animate={{
+          scale: saveStatus !== "idle" ? [1, 1.05, 1] : 1,
+        }}
+        transition={{ duration: 0.3 }}
+        className={`${getDisplayColors()} rounded-lg p-2 mx-4 mb-4 flex items-center justify-center border-2 border-dashed transition-all duration-300 flex-shrink-0`}
+      >
+        <span
+          className={`text-3xl font-mono font-bold tracking-wider transition-colors duration-300 ${getTextColor()}`}
+        >
           {value || "---"}
         </span>
-      </div>
+      </motion.div>
 
       {/* Teclado que abarca todo el ancho */}
       <div className="flex-1 grid grid-cols-3 grid-rows-4 gap-0 w-full">
@@ -39,7 +74,7 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
             key={num}
             whileTap={{ scale: 0.98 }}
             onClick={() => handleNumberPress(num.toString())}
-            className="bg-white border-l border-t border-gray-300 text-3xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
+            className="bg-white border-l border-t border-gray-300 text-4xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
           >
             {num}
           </motion.button>
@@ -58,7 +93,7 @@ export default function CustomKeypad({ value, onChange }: CustomKeypadProps) {
         <motion.button
           whileTap={{ scale: 0.98 }}
           onClick={() => handleNumberPress("0")}
-          className="bg-white border-l border-t border-gray-300 text-3xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
+          className="bg-white border-l border-t border-gray-300 text-4xl font-semibold text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition-all duration-200 active:bg-blue-100 min-h-[70px]"
         >
           0
         </motion.button>
