@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import ProcessSelector from "@/app/components/ui/ProcessSelector";
 import CustomKeypad from "@/app/components/ui/CustomKeypad";
-import ErrorMessage from "@/app/components/ui/ErrorMessage";
 import { useWeek } from "@/app/hooks/useWeek";
 import { useAddCode } from "@/app/hooks/useAddCode";
 import { useAuth } from "@/app/context/AuthContext";
@@ -19,7 +18,6 @@ export default function AddCodePage() {
     selectedProcess,
     code,
     isLoading,
-    error,
     saveStatus,
     setSelectedProcess,
     setCode,
@@ -97,12 +95,6 @@ export default function AddCodePage() {
             compact={true}
           />
         </div>
-
-        {error && (
-          <div className="flex-none px-3 pt-2">
-            <ErrorMessage message={error} onDismiss={() => setCode(code)} />
-          </div>
-        )}
 
         <div className="flex-1 flex flex-col bg-white min-h-0">
           <div className="flex-1 p-2 min-h-0 overflow-hidden">

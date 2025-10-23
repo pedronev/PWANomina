@@ -11,7 +11,6 @@ interface UseAddCodeReturn {
   readonly selectedProcess: number | null;
   readonly code: string;
   readonly isLoading: boolean;
-  readonly error: string | null;
   readonly saveStatus: "idle" | "success" | "error";
   readonly setSelectedProcess: (index: number | null) => void;
   readonly setCode: (code: string) => void;
@@ -26,12 +25,11 @@ export const useAddCode = (
   const [selectedProcess, setSelectedProcess] = useState<number | null>(null);
   const [code, setCode] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "success" | "error">(
     "idle"
   );
 
-  const { addRecord } = useRecords();
+  const { addRecord, records } = useRecords();
 
   const canSave = Boolean(
     selectedProcess !== null &&
@@ -45,31 +43,27 @@ export const useAddCode = (
   const setCodeWithErrorClear = useCallback(
     (newCode: string) => {
       setCode(newCode);
-      if (error) setError(null);
       if (saveStatus !== "idle") setSaveStatus("idle");
     },
-    [error, saveStatus]
+    [saveStatus]
   );
 
   const setSelectedProcessWithErrorClear = useCallback(
     (index: number | null) => {
       setSelectedProcess(index);
-      if (error) setError(null);
       if (saveStatus !== "idle") setSaveStatus("idle");
     },
-    [error, saveStatus]
+    [saveStatus]
   );
 
   const handleSave = useCallback(async (): Promise<void> => {
     if (!canSave) {
-      setError("Por favor completa todos los campos correctamente");
       setSaveStatus("error");
       setTimeout(() => setSaveStatus("idle"), 2000);
       return;
     }
 
     setIsLoading(true);
-    setError(null);
     setSaveStatus("idle");
 
     try {
@@ -94,6 +88,18 @@ export const useAddCode = (
         throw new Error("Proceso no válido");
       }
 
+      // VALIDACIÓN: Verificar si ya existe el código con el mismo proceso en la semana actual
+      const duplicateExists = records.some(
+        (record) =>
+          record.code === code.trim() && record.process === processName
+      );
+
+      if (duplicateExists) {
+        setSaveStatus("error");
+        setTimeout(() => setSaveStatus("idle"), 2000);
+        return;
+      }
+
       const recordData: CreateRecordData = {
         day: selectedDay,
         process: processName,
@@ -113,10 +119,7 @@ export const useAddCode = (
         setSaveStatus("idle");
       }, 2000);
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Error desconocido";
-      console.error("Error saving record:", errorMessage);
-      setError(errorMessage);
+      console.error("Error saving record:", err);
       setSaveStatus("error");
 
       setTimeout(() => {
@@ -125,13 +128,20 @@ export const useAddCode = (
     } finally {
       setIsLoading(false);
     }
-  }, [canSave, selectedProcess, code, selectedDay, processes, addRecord]);
+  }, [
+    canSave,
+    selectedProcess,
+    code,
+    selectedDay,
+    processes,
+    addRecord,
+    records,
+  ]);
 
   return {
     selectedProcess,
     code,
     isLoading,
-    error,
     saveStatus,
     setSelectedProcess: setSelectedProcessWithErrorClear,
     setCode: setCodeWithErrorClear,
