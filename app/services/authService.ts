@@ -1,49 +1,21 @@
 import { supabase } from "@/app/lib/supabase";
 import type { User, LoginCredentials } from "@/app/types/auth";
-import bcrypt from "bcryptjs";
 
 export class AuthService {
   static async login(credentials: LoginCredentials): Promise<User | null> {
     try {
-      const { username, password } = credentials;
+      const response = await fetch("/api/auth", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(credentials),
+      });
 
-      // Buscar empleado por username
-      const { data: empleado, error } = await supabase
-        .from("empleados")
-        .select("id, nombre, username, password_hash, area_id, activo")
-        .eq("username", username)
-        .eq("activo", true)
-        .single();
-
-      if (error || !empleado) {
-        throw new Error("Usuario no encontrado o inactivo");
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error);
       }
 
-      // Verificar contraseña
-      const passwordMatch = await bcrypt.compare(
-        password,
-        empleado.password_hash
-      );
-      if (!passwordMatch) {
-        throw new Error("Contraseña incorrecta");
-      }
-
-      // Actualizar último acceso
-      await supabase
-        .from("empleados")
-        .update({ ultimo_acceso: new Date().toISOString() })
-        .eq("id", empleado.id);
-
-      // Mapear a nuestro tipo User
-      const user: User = {
-        id: empleado.id,
-        nombre: empleado.nombre,
-        username: empleado.username,
-        area_id: empleado.area_id,
-        activo: empleado.activo,
-        ultimo_acceso: new Date().toISOString(),
-      };
-
+      const { user } = await response.json();
       return user;
     } catch (error) {
       console.error("Error en login:", error);

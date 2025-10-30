@@ -27,7 +27,7 @@ export default function DashboardLayout({
   weekSelectorProps,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100">
       {/* Header */}
       {title && (
         <header className="bg-white/95 backdrop-blur-xl border-b border-gray-200/50 px-6 pt-6 pb-4 safe-area-pt shadow-sm">

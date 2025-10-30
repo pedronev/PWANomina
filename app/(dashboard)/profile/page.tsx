@@ -34,9 +34,9 @@ export default function ProfilePage() {
 
   return (
     <DashboardLayout title="Mi Perfil">
-      <div className="p-6 space-y-6">
+      <div className="p-6 space-y-6 h-screen">
         {/* Tarjeta principal de usuario */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 ">
           <div className="flex items-center gap-4">
             <div className="w-20 h-20 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center shadow-lg">
               <User className="w-10 h-10 text-white" />
@@ -81,18 +81,6 @@ export default function ProfilePage() {
                 {user?.username || "Sin especificar"}
               </span>
             </div>
-
-            {user?.area_id && (
-              <div className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
-                <div className="flex items-center gap-3">
-                  <MapPin className="w-4 h-4 text-gray-500" />
-                  <span className="text-gray-600">Área</span>
-                </div>
-                <span className="font-medium text-gray-900">
-                  {user.area_id}
-                </span>
-              </div>
-            )}
 
             <div className="flex items-center justify-between py-2">
               <div className="flex items-center gap-3">
