@@ -52,7 +52,7 @@ export default function LoginPage() {
   const canSubmit = username.trim() && password.trim() && !isLoading;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
+    <div className="h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -168,21 +168,6 @@ export default function LoginPage() {
               )}
             </motion.button>
           </form>
-
-          {/* Credenciales de prueba */}
-          <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-            <p className="text-xs text-gray-600 font-medium mb-2">
-              Credenciales de prueba:
-            </p>
-            <div className="text-xs text-gray-500 space-y-1">
-              <p>
-                <strong>Empleado 1:</strong> empleado1 / pass123
-              </p>
-              <p>
-                <strong>Empleado 2:</strong> empleado2 / pass456
-              </p>
-            </div>
-          </div>
 
           {/* Footer */}
           <div className="mt-6 text-center">
