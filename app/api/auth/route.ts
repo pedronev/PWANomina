@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { data: empleado, error } = await supabase
       .from("empleados")
       .select("id, nombre, username, password_hash, area_id, activo")
-      .eq("username", username)
+      .ilike("username", username)
       .eq("activo", true)
       .single();
 
