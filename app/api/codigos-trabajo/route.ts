@@ -5,6 +5,19 @@ export async function POST(request: NextRequest) {
   try {
     const { empleado_id, codigo, proceso, fecha } = await request.json();
 
+    const getPostgreSQLWeek = (dateString: string): string => {
+      const date = new Date(dateString + "T00:00:00");
+      const year = date.getFullYear();
+      const startOfYear = new Date(year, 0, 1);
+      const days = Math.floor(
+        (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+      return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+    };
+
+    const year_week = getPostgreSQLWeek(fecha);
+
     const { data, error } = await supabase
       .from("codigos_trabajo")
       .insert([
@@ -13,6 +26,7 @@ export async function POST(request: NextRequest) {
           codigo,
           proceso,
           fecha,
+          year_week,
         },
       ])
       .select();
