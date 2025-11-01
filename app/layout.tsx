@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Códigos de Trabajo",
+  title: "Nomina idealtex",
   description: "App para registro de códigos de trabajo diarios",
   generator: "Next.js",
   manifest: "/manifest.json",
@@ -45,10 +45,10 @@ export default function RootLayout({
   return (
     <html lang="es" suppressHydrationWarning>
       <head>
-        <meta name="application-name" content="Códigos de Trabajo" />
+        <meta name="application-name" content="Nomina idealtex" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="apple-mobile-web-app-title" content="Códigos de Trabajo" />
+        <meta name="apple-mobile-web-app-title" content="Nomina idealtex" />
         <meta name="format-detection" content="telephone=no" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="msapplication-config" content="/browserconfig.xml" />
