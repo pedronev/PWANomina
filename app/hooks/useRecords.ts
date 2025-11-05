@@ -9,7 +9,6 @@ import type {
 } from "@/app/types/records";
 import { DEFAULT_DAY } from "@/app/constants/records";
 import {
-  getCurrentDate,
   getCurrentTimestamp,
   isValidDay,
   isValidCode,
