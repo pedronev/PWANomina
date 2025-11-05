@@ -8,7 +8,10 @@ export const generateId = (): string => {
 };
 
 export const getCurrentDate = (): string => {
-  return new Date().toISOString().split("T")[0];
+  const date = new Date();
+  return new Date(date.getTime() - date.getTimezoneOffset() * 60000)
+    .toISOString()
+    .split("T")[0];
 };
 
 export const getCurrentTimestamp = (): string => {

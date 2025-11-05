@@ -117,3 +117,17 @@ body {
   overscroll-behavior-y: contain;
   -webkit-overflow-scrolling: touch;
 }
+#__next {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+/* Permitir scroll solo en contenedores específicos */
+.overflow-auto {
+  -webkit-overflow-scrolling: touch;
+  overflow-y: auto;
+}

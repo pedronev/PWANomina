@@ -83,7 +83,7 @@ export default function AddCodePage() {
         daysOfWeek,
       }}
     >
-      <div className="h-full flex flex-col overflow-hidden overflow-x-hidden">
+      <div className="h-full flex flex-col overflow-hidden">
         <div className="flex-none p-3 bg-white border-b border-gray-100">
           <label className="block text-xs font-medium text-gray-700 mb-1.5">
             Selecciona el proceso

@@ -6,8 +6,10 @@ export async function POST(request: NextRequest) {
     const { empleado_id, codigo, proceso, fecha } = await request.json();
 
     const getPostgreSQLWeek = (dateString: string): string => {
-      const date = new Date(dateString + "T00:00:00");
-      const year = date.getFullYear();
+      // Parsear la fecha en zona horaria de México
+      const [year, month, day] = dateString.split("-").map(Number);
+      const date = new Date(year, month - 1, day);
+
       const startOfYear = new Date(year, 0, 1);
       const days = Math.floor(
         (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
