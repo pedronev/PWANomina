@@ -54,6 +54,7 @@ export default function AddCodePage() {
         );
         if (response.ok) {
           const data = await response.json();
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const processNames = data.map((p: any) => p.nombre);
           setAvailableProcesses(processNames);
         }
