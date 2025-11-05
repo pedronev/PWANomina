@@ -79,15 +79,14 @@ export default function RecordsPage() {
         />
 
         <ClientOnly fallback={<RecordsLoading />}>
-          <div className="flex-1 overflow-auto">
+          <div className="flex-1 overflow-y-auto">
             <Reorder.Group
               axis="y"
               values={flattenedItems}
               onReorder={reorderRecords}
               className="divide-y divide-gray-100"
-              layoutScroll
               style={{
-                overflowY: "auto",
+                overflowY: "visible",
               }}
             >
               {flattenedItems.map((item) => {

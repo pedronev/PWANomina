@@ -156,17 +156,28 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
 
       try {
         const today = new Date();
-        const currentDay = today.getDay();
 
-        // Calcular el viernes de la semana actual + weekOffset
-        let friday;
+        // Obtener el día de hoy en la zona horaria local
+        const localYear = today.getFullYear();
+        const localMonth = today.getMonth();
+        const localDate = today.getDate();
+
+        // Crear fecha sin conversión de zona horaria
+        const localToday = new Date(localYear, localMonth, localDate);
+        const currentDay = localToday.getDay();
+
+        // Calcular el viernes de la semana actual
+        const friday = new Date(localToday);
         if (currentDay >= 5) {
-          friday = new Date(today);
-          friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
+          // Si hoy es viernes (5) o sábado (6)
+          friday.setDate(localToday.getDate() - (currentDay - 5));
         } else {
-          friday = new Date(today);
-          friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
+          // Si es domingo (0) a jueves (4)
+          friday.setDate(localToday.getDate() - (currentDay + 2));
         }
+
+        // Aplicar el offset de semanas DESPUÉS de calcular el viernes base
+        friday.setDate(friday.getDate() + weekOffset * 7);
 
         // Mapear dayId a offset desde el viernes
         const dayOffsets: { [key: number]: number } = {
@@ -183,11 +194,19 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         const targetDate = new Date(friday);
         targetDate.setDate(friday.getDate() + dayOffsets[data.day]);
 
-        // Formatear fecha en zona horaria local (México)
+        // Formatear fecha en formato YYYY-MM-DD sin conversión de zona horaria
         const year = targetDate.getFullYear();
         const month = String(targetDate.getMonth() + 1).padStart(2, "0");
         const day = String(targetDate.getDate()).padStart(2, "0");
         const formattedDate = `${year}-${month}-${day}`;
+
+        console.log("=== DEBUG addRecord ===");
+        console.log("data.day:", data.day);
+        console.log("weekOffset:", weekOffset);
+        console.log("today:", localToday.toDateString());
+        console.log("friday calculado:", friday.toDateString());
+        console.log("targetDate:", targetDate.toDateString());
+        console.log("formattedDate:", formattedDate);
 
         const response = await fetch("/api/codigos-trabajo", {
           method: "POST",

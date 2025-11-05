@@ -68,7 +68,7 @@ export default function DashboardLayout({
       )}
 
       {/* Contenido principal */}
-      <main className="flex-1 pb-20 safe-area-px">
+      <main className="flex-1 pb-20 safe-area-px overflow-y-auto">
         <motion.div
           initial={{ opacity: 0.8 }}
           animate={{ opacity: 1 }}
