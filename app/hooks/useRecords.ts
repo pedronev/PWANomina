@@ -155,20 +155,17 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       }
 
       try {
-        // Calcular la fecha correcta basada en el día seleccionado
         const today = new Date();
         const currentDay = today.getDay();
 
-        let targetDate = new Date(today);
-
-        // Calcular el viernes de la semana actual
+        // Calcular el viernes de la semana actual + weekOffset
         let friday;
         if (currentDay >= 5) {
           friday = new Date(today);
-          friday.setDate(today.getDate() - (currentDay - 5));
+          friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
         } else {
           friday = new Date(today);
-          friday.setDate(today.getDate() - (currentDay + 2));
+          friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
         }
 
         // Mapear dayId a offset desde el viernes
@@ -183,7 +180,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
           15: 7, // Viernes siguiente
         };
 
-        targetDate = new Date(friday);
+        const targetDate = new Date(friday);
         targetDate.setDate(friday.getDate() + dayOffsets[data.day]);
 
         // Formatear fecha en zona horaria local (México)
@@ -229,7 +226,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         throw error;
       }
     },
-    [user]
+    [user, weekOffset]
   );
 
   const deleteRecord = useCallback(

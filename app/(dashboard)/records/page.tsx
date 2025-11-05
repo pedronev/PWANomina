@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useEffect } from "react";
 import { Reorder } from "framer-motion";
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
 import WeekNavigation from "@/app/components/ui/WeekNavigation";
@@ -13,7 +13,6 @@ import { useWeekNavigation } from "@/app/hooks/useWeekNavigation";
 import { DAYS_OF_WEEK } from "@/app/utils/daysUtils";
 import type { WorkRecord } from "@/app/types/records";
 
-// Componente de loading para el fallback
 const RecordsLoading = () => (
   <div className="flex-1 overflow-auto">
     {DAYS_OF_WEEK.map((day) => (
@@ -41,7 +40,13 @@ export default function RecordsPage() {
   const { records, getRecordsForDay, deleteRecord, reorderRecords, stats } =
     useRecords(currentWeekOffset);
 
-  // Crear array plano con separadores para drag & drop
+  useEffect(() => {
+    document.body.style.position = "";
+    document.body.style.width = "";
+    document.body.style.height = "";
+    document.body.style.overflow = "";
+  }, []);
+
   const flattenedItems = useMemo(() => {
     const flattened: (
       | WorkRecord
@@ -49,14 +54,12 @@ export default function RecordsPage() {
     )[] = [];
 
     DAYS_OF_WEEK.forEach((day) => {
-      // Agregar separador del día
       flattened.push({
         type: "separator",
         dayId: day.id,
         dayName: day.full,
       });
 
-      // Agregar registros del día
       const dayRecords = getRecordsForDay(day.id);
       flattened.push(...dayRecords);
     });
@@ -88,7 +91,6 @@ export default function RecordsPage() {
               }}
             >
               {flattenedItems.map((item) => {
-                // Si es un separador de día
                 if ("type" in item && item.type === "separator") {
                   const dayRecords = getRecordsForDay(item.dayId);
                   return (
@@ -101,7 +103,6 @@ export default function RecordsPage() {
                   );
                 }
 
-                // Si es un registro
                 const record = item as WorkRecord;
                 return (
                   <RecordItem
@@ -113,7 +114,6 @@ export default function RecordsPage() {
               })}
             </Reorder.Group>
 
-            {/* Mensaje cuando no hay registros */}
             {records.length === 0 && (
               <div className="px-4 py-12 text-center text-gray-500">
                 <p className="text-sm">No hay registros esta semana</p>
