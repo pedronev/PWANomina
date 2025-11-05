@@ -6,16 +6,40 @@ export async function POST(request: NextRequest) {
     const { empleado_id, codigo, proceso, fecha } = await request.json();
 
     const getPostgreSQLWeek = (dateString: string): string => {
-      // Parsear la fecha en zona horaria de México
       const [year, month, day] = dateString.split("-").map(Number);
       const date = new Date(year, month - 1, day);
+      const currentDay = date.getDay();
 
-      const startOfYear = new Date(year, 0, 1);
-      const days = Math.floor(
-        (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-      );
-      const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-      return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+      // Calcular el viernes de la semana actual (viernes a jueves)
+      const friday = new Date(date);
+      if (currentDay >= 5) {
+        // Si es viernes (5) o sábado (6), retroceder al viernes
+        friday.setDate(date.getDate() - (currentDay - 5));
+      } else {
+        // Si es domingo (0) a jueves (4), retroceder al viernes anterior
+        friday.setDate(date.getDate() - (currentDay + 2));
+      }
+
+      // Calcular el primer viernes del año
+      const yearStart = new Date(friday.getFullYear(), 0, 1);
+      const firstFriday = new Date(yearStart);
+      const startDay = yearStart.getDay();
+
+      if (startDay <= 5) {
+        firstFriday.setDate(yearStart.getDate() + (5 - startDay));
+      } else {
+        firstFriday.setDate(yearStart.getDate() + (12 - startDay));
+      }
+
+      // Calcular número de semana
+      const weekNumber =
+        Math.floor(
+          (friday.getTime() - firstFriday.getTime()) / (7 * 24 * 60 * 60 * 1000)
+        ) + 1;
+
+      return `${friday.getFullYear()}-W${weekNumber
+        .toString()
+        .padStart(2, "0")}`;
     };
 
     const year_week = getPostgreSQLWeek(fecha);

@@ -56,13 +56,39 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
 
       // Calcular year_week usando la misma lógica que PostgreSQL TO_CHAR
       const getPostgreSQLWeek = (date: Date): string => {
-        const year = date.getFullYear();
-        const startOfYear = new Date(year, 0, 1);
-        const days = Math.floor(
-          (date.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24)
-        );
-        const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
-        return `${year}-W${weekNumber.toString().padStart(2, "0")}`;
+        const currentDay = date.getDay();
+
+        // Calcular el viernes de la semana actual (viernes a jueves)
+        const friday = new Date(date);
+        if (currentDay >= 5) {
+          // Si es viernes (5) o sábado (6), retroceder al viernes
+          friday.setDate(date.getDate() - (currentDay - 5));
+        } else {
+          // Si es domingo (0) a jueves (4), retroceder al viernes anterior
+          friday.setDate(date.getDate() - (currentDay + 2));
+        }
+
+        // Calcular el primer viernes del año
+        const yearStart = new Date(friday.getFullYear(), 0, 1);
+        const firstFriday = new Date(yearStart);
+        const startDay = yearStart.getDay();
+
+        if (startDay <= 5) {
+          firstFriday.setDate(yearStart.getDate() + (5 - startDay));
+        } else {
+          firstFriday.setDate(yearStart.getDate() + (12 - startDay));
+        }
+
+        // Calcular número de semana
+        const weekNumber =
+          Math.floor(
+            (friday.getTime() - firstFriday.getTime()) /
+              (7 * 24 * 60 * 60 * 1000)
+          ) + 1;
+
+        return `${friday.getFullYear()}-W${weekNumber
+          .toString()
+          .padStart(2, "0")}`;
       };
 
       const currentWeek = getPostgreSQLWeek(targetDate);
@@ -155,29 +181,23 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       }
 
       try {
+        // Obtener el día actual
         const today = new Date();
+        const currentDay = today.getDay();
 
-        // Obtener el día de hoy en la zona horaria local
-        const localYear = today.getFullYear();
-        const localMonth = today.getMonth();
-        const localDate = today.getDate();
-
-        // Crear fecha sin conversión de zona horaria
-        const localToday = new Date(localYear, localMonth, localDate);
-        const currentDay = localToday.getDay();
-
-        // Calcular el viernes de la semana actual
-        const friday = new Date(localToday);
+        // Calcular el viernes base de la semana actual (sin offset aún)
+        const baseFriday = new Date(today);
         if (currentDay >= 5) {
           // Si hoy es viernes (5) o sábado (6)
-          friday.setDate(localToday.getDate() - (currentDay - 5));
+          baseFriday.setDate(today.getDate() - (currentDay - 5));
         } else {
           // Si es domingo (0) a jueves (4)
-          friday.setDate(localToday.getDate() - (currentDay + 2));
+          baseFriday.setDate(today.getDate() - (currentDay + 2));
         }
 
-        // Aplicar el offset de semanas DESPUÉS de calcular el viernes base
-        friday.setDate(friday.getDate() + weekOffset * 7);
+        // Aplicar el weekOffset para obtener el viernes de la semana seleccionada
+        const targetFriday = new Date(baseFriday);
+        targetFriday.setDate(baseFriday.getDate() + weekOffset * 7);
 
         // Mapear dayId a offset desde el viernes
         const dayOffsets: { [key: number]: number } = {
@@ -191,10 +211,11 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
           15: 7, // Viernes siguiente
         };
 
-        const targetDate = new Date(friday);
-        targetDate.setDate(friday.getDate() + dayOffsets[data.day]);
+        // Calcular la fecha objetivo sumando el offset del día al viernes de la semana
+        const targetDate = new Date(targetFriday);
+        targetDate.setDate(targetFriday.getDate() + dayOffsets[data.day]);
 
-        // Formatear fecha en formato YYYY-MM-DD sin conversión de zona horaria
+        // Formatear fecha en formato YYYY-MM-DD
         const year = targetDate.getFullYear();
         const month = String(targetDate.getMonth() + 1).padStart(2, "0");
         const day = String(targetDate.getDate()).padStart(2, "0");
@@ -203,8 +224,6 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         console.log("=== DEBUG addRecord ===");
         console.log("data.day:", data.day);
         console.log("weekOffset:", weekOffset);
-        console.log("today:", localToday.toDateString());
-        console.log("friday calculado:", friday.toDateString());
         console.log("targetDate:", targetDate.toDateString());
         console.log("formattedDate:", formattedDate);
 
