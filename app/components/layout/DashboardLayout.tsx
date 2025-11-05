@@ -27,10 +27,10 @@ export default function DashboardLayout({
   weekSelectorProps,
 }: DashboardLayoutProps) {
   return (
-    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div className="flex flex-col h-screen bg-gradient-to-br from-gray-50 to-gray-100 overflow-hidden">
       {/* Header */}
       {title && (
-        <header className="bg-white/95 backdrop-blur-xl border-b border-gray-200/50 px-6 pt-6 pb-4 safe-area-pt shadow-sm">
+        <header className="flex-none bg-white/95 backdrop-blur-xl border-b border-gray-200/50 px-6 pt-6 pb-4 safe-area-pt shadow-sm">
           <div className="flex items-end justify-between mb-4">
             <div className="flex-1">
               <motion.h1
@@ -55,7 +55,6 @@ export default function DashboardLayout({
             {headerAction && <div className="ml-4">{headerAction}</div>}
           </div>
 
-          {/* Week Selector */}
           {showWeekSelector && weekSelectorProps && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -69,14 +68,8 @@ export default function DashboardLayout({
       )}
 
       {/* Contenido principal */}
-      <main className="flex-1 pb-20 safe-area-px">
-        <motion.div
-          initial={{ opacity: 0.8 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.15, ease: "easeOut" }}
-        >
-          {children}
-        </motion.div>
+      <main className="flex-1 pb-20 safe-area-px overflow-hidden">
+        {children}
       </main>
 
       {/* Navegación inferior */}
