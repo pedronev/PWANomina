@@ -68,8 +68,14 @@ export default function DashboardLayout({
       )}
 
       {/* Contenido principal */}
-      <main className="flex-1 pb-20 safe-area-px overflow-hidden">
-        {children}
+      <main className="flex-1 pb-20 safe-area-px">
+        <motion.div
+          initial={{ opacity: 0.8 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.15, ease: "easeOut" }}
+        >
+          {children}
+        </motion.div>
       </main>
 
       {/* Navegación inferior */}
