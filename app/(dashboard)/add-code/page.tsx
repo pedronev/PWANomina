@@ -25,6 +25,24 @@ export default function AddCodePage() {
     canSave,
   } = useAddCode(selectedDay, availableProcesses);
 
+  // Prevenir scroll en esta página para iOS
+  useEffect(() => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    if (isIOS) {
+      document.body.style.position = "fixed";
+      document.body.style.width = "100%";
+      document.body.style.height = "100%";
+      document.body.style.overflow = "hidden";
+
+      return () => {
+        document.body.style.position = "";
+        document.body.style.width = "";
+        document.body.style.height = "";
+        document.body.style.overflow = "";
+      };
+    }
+  }, []);
+
   useEffect(() => {
     const fetchUserProcesses = async () => {
       if (!user) return;
@@ -36,7 +54,6 @@ export default function AddCodePage() {
         );
         if (response.ok) {
           const data = await response.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const processNames = data.map((p: any) => p.nombre);
           setAvailableProcesses(processNames);
         }
@@ -83,7 +100,7 @@ export default function AddCodePage() {
         daysOfWeek,
       }}
     >
-      <div className="h-full flex flex-col overflow-hidden touch-none">
+      <div className="h-full flex flex-col overflow-hidden">
         <div className="flex-none p-3 bg-white border-b border-gray-100">
           <label className="block text-xs font-medium text-gray-700 mb-1.5">
             Selecciona el proceso
@@ -96,7 +113,7 @@ export default function AddCodePage() {
           />
         </div>
 
-        <div className="flex-1 flex flex-col bg-white min-h-0 overflow-hidden">
+        <div className="flex-1 flex flex-col bg-white min-h-0">
           <div className="flex-1 p-2 min-h-0 overflow-hidden">
             <CustomKeypad
               value={code}
