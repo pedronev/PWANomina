@@ -155,6 +155,43 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       }
 
       try {
+        // Calcular la fecha correcta basada en el día seleccionado
+        const today = new Date();
+        const currentDay = today.getDay();
+
+        let targetDate = new Date(today);
+
+        // Calcular el viernes de la semana actual
+        let friday;
+        if (currentDay >= 5) {
+          friday = new Date(today);
+          friday.setDate(today.getDate() - (currentDay - 5));
+        } else {
+          friday = new Date(today);
+          friday.setDate(today.getDate() - (currentDay + 2));
+        }
+
+        // Mapear dayId a offset desde el viernes
+        const dayOffsets: { [key: number]: number } = {
+          5: 0, // Viernes
+          6: 1, // Sábado
+          0: 2, // Domingo
+          1: 3, // Lunes
+          2: 4, // Martes
+          3: 5, // Miércoles
+          4: 6, // Jueves
+          15: 7, // Viernes siguiente
+        };
+
+        targetDate = new Date(friday);
+        targetDate.setDate(friday.getDate() + dayOffsets[data.day]);
+
+        // Formatear fecha en zona horaria local (México)
+        const year = targetDate.getFullYear();
+        const month = String(targetDate.getMonth() + 1).padStart(2, "0");
+        const day = String(targetDate.getDate()).padStart(2, "0");
+        const formattedDate = `${year}-${month}-${day}`;
+
         const response = await fetch("/api/codigos-trabajo", {
           method: "POST",
           headers: {
@@ -164,7 +201,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
             empleado_id: user.id,
             codigo: data.code,
             proceso: data.process,
-            fecha: getCurrentDate(),
+            fecha: formattedDate,
           }),
         });
 
@@ -181,7 +218,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
           day: data.day,
           process: formatProcess(data.process),
           code: formatCode(data.code),
-          date: getCurrentDate(),
+          date: formattedDate,
           createdAt: savedCodigo.creado_en || getCurrentTimestamp(),
         };
 
