@@ -107,7 +107,7 @@ export async function GET(request: NextRequest) {
     }
 
     const { data, error } = await query.order("creado_en", {
-      ascending: false,
+      ascending: true,
     });
 
     if (error) throw error;
