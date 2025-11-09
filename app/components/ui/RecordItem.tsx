@@ -30,7 +30,7 @@ const RecordItem = memo(({ record, onDelete }: RecordItemProps) => {
       value={record}
       dragListener={false}
       dragControls={dragControls}
-      className="px-3 py-2.5 flex items-center gap-3 hover:bg-gray-50 bg-white border-b border-gray-100"
+      className="px-3 py-0.5 flex items-center gap-3 hover:bg-gray-50 bg-white border-b border-gray-100"
       style={{
         transition: "background-color 0.15s ease",
       }}
