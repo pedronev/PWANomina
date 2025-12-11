@@ -17,6 +17,7 @@ import {
   formatCode,
   formatProcess,
 } from "@/app/utils/recordsUtils";
+import { getPostgreSQLWeek } from "../utils/weekUtils";
 
 interface CodigoFromDB {
   id: string;
@@ -25,6 +26,7 @@ interface CodigoFromDB {
   proceso: string;
   fecha: string;
   creado_en: string;
+  year_week: string;
 }
 
 export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
@@ -38,7 +40,6 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
     return dayOfWeek;
   };
 
-  // Función para obtener códigos de la base de datos
   const fetchRecords = useCallback(async () => {
     if (!user) {
       setRecords([]);
@@ -46,72 +47,49 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
     }
 
     try {
-      // Usar la misma lógica que el trigger de la BD
       const today = new Date();
-
-      // Ajustar fecha basada en weekOffset
       const targetDate = new Date(today);
       targetDate.setDate(today.getDate() + weekOffset * 7);
 
-      // Calcular year_week usando la misma lógica que PostgreSQL TO_CHAR
-      const getPostgreSQLWeek = (date: Date): string => {
-        const currentDay = date.getDay();
-
-        // Calcular el viernes de la semana actual (viernes a jueves)
-        const friday = new Date(date);
-        if (currentDay >= 5) {
-          // Si es viernes (5) o sábado (6), retroceder al viernes
-          friday.setDate(date.getDate() - (currentDay - 5));
-        } else {
-          // Si es domingo (0) a jueves (4), retroceder al viernes anterior
-          friday.setDate(date.getDate() - (currentDay + 2));
-        }
-
-        // Calcular el primer viernes del año
-        const yearStart = new Date(friday.getFullYear(), 0, 1);
-        const firstFriday = new Date(yearStart);
-        const startDay = yearStart.getDay();
-
-        if (startDay <= 5) {
-          firstFriday.setDate(yearStart.getDate() + (5 - startDay));
-        } else {
-          firstFriday.setDate(yearStart.getDate() + (12 - startDay));
-        }
-
-        // Calcular número de semana
-        const weekNumber =
-          Math.floor(
-            (friday.getTime() - firstFriday.getTime()) /
-              (7 * 24 * 60 * 60 * 1000)
-          ) + 1;
-
-        return `${friday.getFullYear()}-W${weekNumber
-          .toString()
-          .padStart(2, "0")}`;
-      };
-
       const currentWeek = getPostgreSQLWeek(targetDate);
 
+      // Calcular la siguiente semana para el viernes extra
+      const nextWeekDate = new Date(targetDate);
+      nextWeekDate.setDate(targetDate.getDate() + 7);
+      const nextWeek = getPostgreSQLWeek(nextWeekDate);
+
+      // Traer registros de ambas semanas
       const response = await fetch(
-        `/api/codigos-trabajo?empleado_id=${user.id}&year_week=${currentWeek}`
+        `/api/codigos-trabajo?empleado_id=${user.id}&year_weeks=${currentWeek},${nextWeek}`
       );
       if (!response.ok) throw new Error("Error al obtener códigos");
 
       const codigosData: CodigoFromDB[] = await response.json();
 
-      const workRecords: WorkRecord[] = codigosData.map((codigo) => {
-        const day = getDayFromDate(codigo.fecha);
+      const workRecords: WorkRecord[] = codigosData
+        .map((codigo) => {
+          const day = getDayFromDate(codigo.fecha);
 
-        return {
-          id: codigo.id,
-          user_id: user.id,
-          day: day,
-          process: codigo.proceso,
-          code: codigo.codigo,
-          date: codigo.fecha,
-          createdAt: codigo.creado_en,
-        };
-      });
+          // Filtrar: de currentWeek traer todos, de nextWeek solo viernes
+          const codigoWeek = codigo.year_week;
+          if (codigoWeek === nextWeek && day !== 5) {
+            return null; // Excluir registros que no sean viernes de la semana siguiente
+          }
+
+          // Asignar dayId 15 al viernes de la siguiente semana
+          const displayDay = codigoWeek === nextWeek && day === 5 ? 15 : day;
+
+          return {
+            id: codigo.id,
+            user_id: user.id,
+            day: displayDay,
+            process: codigo.proceso,
+            code: codigo.codigo,
+            date: codigo.fecha,
+            createdAt: codigo.creado_en,
+          };
+        })
+        .filter((record): record is WorkRecord => record !== null);
 
       setRecords(workRecords);
     } catch (error) {
@@ -119,7 +97,6 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       setRecords([]);
     }
   }, [user, weekOffset]);
-
   // Cargar datos al inicializar o cambiar usuario
   useEffect(() => {
     fetchRecords();

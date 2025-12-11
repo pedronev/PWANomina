@@ -1,7 +1,7 @@
 "use client";
 
 import DashboardLayout from "@/app/components/layout/DashboardLayout";
-import { LogOut, User, Clock, MapPin } from "lucide-react";
+import { LogOut, User, Clock } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 
 export default function ProfilePage() {
