@@ -2,10 +2,25 @@ import { useState } from "react";
 import { getWeekRangeForDisplay } from "@/app/utils/weekUtils";
 
 export const useWeek = () => {
-  const [selectedDay, setSelectedDay] = useState<number>(new Date().getDay());
+  // NUEVA LÓGICA: Determinar el día seleccionado correcto
+  const getInitialSelectedDay = () => {
+    const today = new Date();
+    const currentDay = today.getDay();
+    // Si es viernes, seleccionar el día 15 (viernes siguiente en la vista)
+    // porque estamos mostrando la semana anterior
+    if (currentDay === 5) {
+      return 15;
+    }
+    return currentDay;
+  };
+
+  const [selectedDay, setSelectedDay] = useState<number>(
+    getInitialSelectedDay()
+  );
 
   const getWeekRange = () => {
-    return getWeekRangeForDisplay(0);
+    const result = getWeekRangeForDisplay(0);
+    return result;
   };
 
   const daysOfWeek = [

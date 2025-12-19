@@ -1,21 +1,20 @@
 export const getPostgreSQLWeek = (date: Date): string => {
   const currentDay = date.getDay();
 
-  // Calcular el viernes de la semana actual (viernes a viernes)
-  // CAMBIO: Si es viernes (5), quedarse en esa semana
   const friday = new Date(date);
-  if (currentDay === 6) {
-    // Sábado: ir al viernes anterior
+
+  // NUEVA LÓGICA: El viernes siempre retrocede una semana
+  if (currentDay === 5) {
+    // Viernes: retroceder 7 días al viernes anterior
+    friday.setDate(date.getDate() - 7);
+  } else if (currentDay === 6) {
+    // Sábado: ir al viernes anterior (ayer)
     friday.setDate(date.getDate() - 1);
-  } else if (currentDay >= 5) {
-    // Viernes: quedarse en el mismo día
-    // No hacer nada
   } else {
     // Domingo a jueves: retroceder al viernes anterior
     friday.setDate(date.getDate() - (currentDay + 2));
   }
 
-  // Calcular el primer viernes del año
   const yearStart = new Date(friday.getFullYear(), 0, 1);
   const firstFriday = new Date(yearStart);
   const startDay = yearStart.getDay();
@@ -26,36 +25,40 @@ export const getPostgreSQLWeek = (date: Date): string => {
     firstFriday.setDate(yearStart.getDate() + (12 - startDay));
   }
 
-  // Calcular número de semana
   const weekNumber =
     Math.floor(
       (friday.getTime() - firstFriday.getTime()) / (7 * 24 * 60 * 60 * 1000)
     ) + 1;
 
-  return `${friday.getFullYear()}-W${weekNumber.toString().padStart(2, "0")}`;
+  const result = `${friday.getFullYear()}-W${weekNumber
+    .toString()
+    .padStart(2, "0")}`;
+
+  return result;
 };
 
-// Función auxiliar para mostrar en la UI
 export const getWeekRangeForDisplay = (weekOffset: number = 0): string => {
   const today = new Date();
   const currentDay = today.getDay();
 
-  // Calcular el viernes base
   const baseFriday = new Date(today);
-  if (currentDay === 6) {
-    // Sábado: ir al viernes anterior
+
+  // NUEVA LÓGICA PARA DISPLAY
+  if (currentDay === 5) {
+    // Viernes: retroceder 7 días (mostrar semana anterior)
+    baseFriday.setDate(today.getDate() - 7);
+  } else if (currentDay === 6) {
+    // Sábado: ir al viernes anterior (ayer)
     baseFriday.setDate(today.getDate() - 1);
-  } else if (currentDay >= 5) {
-    // Viernes: quedarse
   } else {
-    // Domingo a jueves: retroceder
+    // Domingo a jueves: retroceder al viernes anterior
     baseFriday.setDate(today.getDate() - (currentDay + 2));
   }
 
   // Aplicar offset
   baseFriday.setDate(baseFriday.getDate() + weekOffset * 7);
 
-  // Viernes siguiente
+  // Viernes siguiente (7 días después)
   const nextFriday = new Date(baseFriday);
   nextFriday.setDate(baseFriday.getDate() + 7);
 
@@ -66,5 +69,7 @@ export const getWeekRangeForDisplay = (weekOffset: number = 0): string => {
     });
   };
 
-  return `${formatDate(baseFriday)} - ${formatDate(nextFriday)}`;
+  const result = `${formatDate(baseFriday)} - ${formatDate(nextFriday)}`;
+
+  return result;
 };

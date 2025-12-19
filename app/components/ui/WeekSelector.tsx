@@ -16,34 +16,58 @@ export default function WeekSelector({
   onDaySelect,
   daysOfWeek,
 }: WeekSelectorProps) {
-  // Calcular fecha para cada día de la semana actual (viernes a jueves + viernes siguiente)
   const getDateForDay = (dayId: number, isNextWeek = false) => {
     const today = new Date();
-    const currentDayOfWeek = today.getDay(); // 0=domingo, 1=lunes, etc.
+    const currentDayOfWeek = today.getDay();
 
-    // Determinar cuántos días desde el viernes de esta semana
-    let daysSinceFriday;
-    if (currentDayOfWeek >= 5) {
-      // viernes=5, sábado=6
-      daysSinceFriday = currentDayOfWeek - 5;
+    console.log("=== WeekSelector.getDateForDay ===");
+    console.log("dayId:", dayId, "isNextWeek:", isNextWeek);
+    console.log(
+      "Hoy:",
+      today.toDateString(),
+      "Día de semana:",
+      currentDayOfWeek
+    );
+
+    // NUEVA LÓGICA: Si hoy es viernes, retroceder 7 días
+    const baseFriday = new Date(today);
+
+    if (currentDayOfWeek === 5) {
+      // Viernes: retroceder 7 días
+      console.log("ES VIERNES - Retrocediendo 7 días para base");
+      baseFriday.setDate(today.getDate() - 7);
+    } else if (currentDayOfWeek === 6) {
+      // Sábado: ir al viernes anterior (ayer)
+      console.log("ES SÁBADO - Retrocediendo 1 día");
+      baseFriday.setDate(today.getDate() - 1);
+    } else if (currentDayOfWeek >= 5) {
+      // No debería pasar
+      baseFriday.setDate(today.getDate() - (currentDayOfWeek - 5));
     } else {
-      // domingo=0, lunes=1, martes=2, miércoles=3, jueves=4
-      daysSinceFriday = currentDayOfWeek + 2;
+      // Domingo a jueves: retroceder al viernes anterior
+      console.log("ES DOMINGO-JUEVES - Retrocediendo al viernes");
+      baseFriday.setDate(today.getDate() - (currentDayOfWeek + 2));
     }
 
-    let targetDayOffset;
+    console.log("Viernes base calculado:", baseFriday.toDateString());
 
+    let targetDayOffset;
     if (isNextWeek) {
-      // Viernes de la siguiente semana
-      targetDayOffset = 7; // 7 días después del viernes actual
+      targetDayOffset = 7;
     } else {
-      // Orden de días en nuestra semana: vie=0, sáb=1, dom=2, lun=3, mar=4, mié=5, jue=6
       const dayOrder = { 5: 0, 6: 1, 0: 2, 1: 3, 2: 4, 3: 5, 4: 6 };
       targetDayOffset = dayOrder[dayId as keyof typeof dayOrder];
     }
 
-    const targetDate = new Date(today);
-    targetDate.setDate(today.getDate() - daysSinceFriday + targetDayOffset);
+    const targetDate = new Date(baseFriday);
+    targetDate.setDate(baseFriday.getDate() + targetDayOffset);
+
+    console.log(
+      "Fecha objetivo:",
+      targetDate.toDateString(),
+      "Día:",
+      targetDate.getDate()
+    );
 
     return targetDate.getDate();
   };
