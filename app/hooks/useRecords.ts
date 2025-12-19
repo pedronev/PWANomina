@@ -17,7 +17,7 @@ import {
   formatCode,
   formatProcess,
 } from "@/app/utils/recordsUtils";
-import { getPostgreSQLWeek } from "../utils/weekUtils";
+import { getDisplayWeek, getPostgreSQLWeek } from "../utils/weekUtils";
 
 interface CodigoFromDB {
   id: string;
@@ -51,7 +51,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       const targetDate = new Date(today);
       targetDate.setDate(today.getDate() + weekOffset * 7);
 
-      const currentWeek = getPostgreSQLWeek(targetDate);
+      const currentWeek = getDisplayWeek(targetDate);
 
       // Calcular la siguiente semana para el viernes extra
       const nextWeekDate = new Date(targetDate);

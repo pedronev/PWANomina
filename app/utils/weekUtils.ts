@@ -1,17 +1,21 @@
+// Calcula la semana de UNA FECHA ESPECÍFICA (sin lógica de retroceder)
 export const getPostgreSQLWeek = (date: Date): string => {
   const currentDay = date.getDay();
 
+  // Encontrar el VIERNES de la semana de esta fecha
   const friday = new Date(date);
 
-  // NUEVA LÓGICA: El viernes siempre retrocede una semana
   if (currentDay === 5) {
-    // Viernes: retroceder 7 días al viernes anterior
-    friday.setDate(date.getDate() - 7);
+    // Si ES viernes, usar ese mismo viernes
+    // NO retroceder
   } else if (currentDay === 6) {
-    // Sábado: ir al viernes anterior (ayer)
+    // Sábado: viernes fue ayer
     friday.setDate(date.getDate() - 1);
+  } else if (currentDay === 0) {
+    // Domingo: viernes fue hace 2 días
+    friday.setDate(date.getDate() - 2);
   } else {
-    // Domingo a jueves: retroceder al viernes anterior
+    // Lunes-Jueves: retroceder al viernes de esta semana
     friday.setDate(date.getDate() - (currentDay + 2));
   }
 
@@ -30,11 +34,25 @@ export const getPostgreSQLWeek = (date: Date): string => {
       (friday.getTime() - firstFriday.getTime()) / (7 * 24 * 60 * 60 * 1000)
     ) + 1;
 
-  const result = `${friday.getFullYear()}-W${weekNumber
-    .toString()
-    .padStart(2, "0")}`;
+  return `${friday.getFullYear()}-W${weekNumber.toString().padStart(2, "0")}`;
+};
 
-  return result;
+// Calcula qué semana MOSTRAR en la UI (con lógica de retroceder en viernes)
+export const getDisplayWeek = (date: Date): string => {
+  const currentDay = date.getDay();
+  const baseFriday = new Date(date);
+
+  // Aplicar lógica de "qué semana mostrar"
+  if (currentDay === 5) {
+    baseFriday.setDate(date.getDate() - 7);
+  } else if (currentDay === 6) {
+    baseFriday.setDate(date.getDate() - 1);
+  } else {
+    baseFriday.setDate(date.getDate() - (currentDay + 2));
+  }
+
+  // Ahora sí calcular la semana de ese viernes
+  return getPostgreSQLWeek(baseFriday);
 };
 
 export const getWeekRangeForDisplay = (weekOffset: number = 0): string => {
@@ -43,22 +61,16 @@ export const getWeekRangeForDisplay = (weekOffset: number = 0): string => {
 
   const baseFriday = new Date(today);
 
-  // NUEVA LÓGICA PARA DISPLAY
   if (currentDay === 5) {
-    // Viernes: retroceder 7 días (mostrar semana anterior)
     baseFriday.setDate(today.getDate() - 7);
   } else if (currentDay === 6) {
-    // Sábado: ir al viernes anterior (ayer)
     baseFriday.setDate(today.getDate() - 1);
   } else {
-    // Domingo a jueves: retroceder al viernes anterior
     baseFriday.setDate(today.getDate() - (currentDay + 2));
   }
 
-  // Aplicar offset
   baseFriday.setDate(baseFriday.getDate() + weekOffset * 7);
 
-  // Viernes siguiente (7 días después)
   const nextFriday = new Date(baseFriday);
   nextFriday.setDate(baseFriday.getDate() + 7);
 
@@ -69,7 +81,5 @@ export const getWeekRangeForDisplay = (weekOffset: number = 0): string => {
     });
   };
 
-  const result = `${formatDate(baseFriday)} - ${formatDate(nextFriday)}`;
-
-  return result;
+  return `${formatDate(baseFriday)} - ${formatDate(nextFriday)}`;
 };
