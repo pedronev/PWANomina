@@ -157,21 +157,24 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
       }
 
       try {
-        // Obtener el día actual
         const today = new Date();
         const currentDay = today.getDay();
 
-        // Calcular el viernes base de la semana actual (sin offset aún)
+        // USAR LA MISMA LÓGICA QUE weekUtils.ts
         const baseFriday = new Date(today);
-        if (currentDay >= 5) {
-          // Si hoy es viernes (5) o sábado (6)
-          baseFriday.setDate(today.getDate() - (currentDay - 5));
+
+        if (currentDay === 5) {
+          // Viernes: retroceder 7 días
+          baseFriday.setDate(today.getDate() - 7);
+        } else if (currentDay === 6) {
+          // Sábado: retroceder 1 día (al viernes anterior)
+          baseFriday.setDate(today.getDate() - 1);
         } else {
-          // Si es domingo (0) a jueves (4)
+          // Domingo a jueves: retroceder al viernes anterior
           baseFriday.setDate(today.getDate() - (currentDay + 2));
         }
 
-        // Aplicar el weekOffset para obtener el viernes de la semana seleccionada
+        // Aplicar el weekOffset
         const targetFriday = new Date(baseFriday);
         targetFriday.setDate(baseFriday.getDate() + weekOffset * 7);
 
@@ -187,7 +190,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
           15: 7, // Viernes siguiente
         };
 
-        // Calcular la fecha objetivo sumando el offset del día al viernes de la semana
+        // Calcular la fecha objetivo
         const targetDate = new Date(targetFriday);
         targetDate.setDate(targetFriday.getDate() + dayOffsets[data.day]);
 
@@ -196,12 +199,6 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
         const month = String(targetDate.getMonth() + 1).padStart(2, "0");
         const day = String(targetDate.getDate()).padStart(2, "0");
         const formattedDate = `${year}-${month}-${day}`;
-
-        console.log("=== DEBUG addRecord ===");
-        console.log("data.day:", data.day);
-        console.log("weekOffset:", weekOffset);
-        console.log("targetDate:", targetDate.toDateString());
-        console.log("formattedDate:", formattedDate);
 
         const response = await fetch("/api/codigos-trabajo", {
           method: "POST",

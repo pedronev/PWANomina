@@ -15,13 +15,22 @@ const getDayDate = (dayId: number, weekOffset: number = 0) => {
   const today = new Date();
   const currentDay = today.getDay();
 
-  // Calcular el viernes de la semana seleccionada
-  const friday = new Date(today);
-  if (currentDay >= 5) {
-    friday.setDate(today.getDate() - (currentDay - 5) + weekOffset * 7);
+  // USAR LA MISMA LÓGICA QUE weekUtils.ts
+  const baseFriday = new Date(today);
+
+  if (currentDay === 5) {
+    // Viernes: retroceder 7 días
+    baseFriday.setDate(today.getDate() - 7);
+  } else if (currentDay === 6) {
+    // Sábado: retroceder 1 día
+    baseFriday.setDate(today.getDate() - 1);
   } else {
-    friday.setDate(today.getDate() - (currentDay + 2) + weekOffset * 7);
+    // Domingo a jueves: retroceder al viernes anterior
+    baseFriday.setDate(today.getDate() - (currentDay + 2));
   }
+
+  // Aplicar weekOffset
+  baseFriday.setDate(baseFriday.getDate() + weekOffset * 7);
 
   // Mapear dayId a offset desde el viernes
   const dayOffsets: { [key: number]: number } = {
@@ -35,8 +44,8 @@ const getDayDate = (dayId: number, weekOffset: number = 0) => {
     15: 7, // Viernes siguiente
   };
 
-  const targetDate = new Date(friday);
-  targetDate.setDate(friday.getDate() + dayOffsets[dayId]);
+  const targetDate = new Date(baseFriday);
+  targetDate.setDate(baseFriday.getDate() + dayOffsets[dayId]);
 
   return targetDate;
 };

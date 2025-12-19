@@ -20,36 +20,22 @@ export default function WeekSelector({
     const today = new Date();
     const currentDayOfWeek = today.getDay();
 
-    console.log("=== WeekSelector.getDateForDay ===");
-    console.log("dayId:", dayId, "isNextWeek:", isNextWeek);
-    console.log(
-      "Hoy:",
-      today.toDateString(),
-      "Día de semana:",
-      currentDayOfWeek
-    );
-
     // NUEVA LÓGICA: Si hoy es viernes, retroceder 7 días
     const baseFriday = new Date(today);
 
     if (currentDayOfWeek === 5) {
       // Viernes: retroceder 7 días
-      console.log("ES VIERNES - Retrocediendo 7 días para base");
       baseFriday.setDate(today.getDate() - 7);
     } else if (currentDayOfWeek === 6) {
       // Sábado: ir al viernes anterior (ayer)
-      console.log("ES SÁBADO - Retrocediendo 1 día");
       baseFriday.setDate(today.getDate() - 1);
     } else if (currentDayOfWeek >= 5) {
       // No debería pasar
       baseFriday.setDate(today.getDate() - (currentDayOfWeek - 5));
     } else {
       // Domingo a jueves: retroceder al viernes anterior
-      console.log("ES DOMINGO-JUEVES - Retrocediendo al viernes");
       baseFriday.setDate(today.getDate() - (currentDayOfWeek + 2));
     }
-
-    console.log("Viernes base calculado:", baseFriday.toDateString());
 
     let targetDayOffset;
     if (isNextWeek) {
@@ -61,13 +47,6 @@ export default function WeekSelector({
 
     const targetDate = new Date(baseFriday);
     targetDate.setDate(baseFriday.getDate() + targetDayOffset);
-
-    console.log(
-      "Fecha objetivo:",
-      targetDate.toDateString(),
-      "Día:",
-      targetDate.getDate()
-    );
 
     return targetDate.getDate();
   };
