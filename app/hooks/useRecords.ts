@@ -53,10 +53,10 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
 
       const currentWeek = getDisplayWeek(targetDate);
 
-      // Calcular la siguiente semana para el viernes extra
+      // Calcular la siguiente semana: sumar 7 días al viernes base de currentWeek
       const nextWeekDate = new Date(targetDate);
       nextWeekDate.setDate(targetDate.getDate() + 7);
-      const nextWeek = getPostgreSQLWeek(nextWeekDate);
+      const nextWeek = getDisplayWeek(nextWeekDate);
 
       // Traer registros de ambas semanas
       const response = await fetch(
@@ -73,7 +73,7 @@ export const useRecords = (weekOffset: number = 0): RecordsHookReturn => {
           // Filtrar: de currentWeek traer todos, de nextWeek solo viernes
           const codigoWeek = codigo.year_week;
           if (codigoWeek === nextWeek && day !== 5) {
-            return null; // Excluir registros que no sean viernes de la semana siguiente
+            return null;
           }
 
           // Asignar dayId 15 al viernes de la siguiente semana
